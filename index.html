@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>報酬台帳｜獎勵台帳｜보상 장부</title>
+<style>
+:root{
+  --bg:#FBF7F2; --card:#FFFFFF; --line:#E7DED2; --ink:#3B332C; --sub:#8A7D6E;
+  --accent:#E8A0B4; --accent2:#A9C6F0; --ok:#7FB07A; --warn:#E0A33A; --bad:#D9736F;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif;
+  font-size:15px;line-height:1.55}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:10px 12px calc(env(safe-area-inset-top)*0 + 8px)}
+.hrow{display:flex;align-items:center;gap:8px}
+h1{font-size:16px;margin:0;font-weight:700;flex:1}
+.langs{display:flex;gap:4px}
+.langs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 9px;font-size:12px;color:var(--sub)}
+.langs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+nav{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:2px}
+nav button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:7px 14px;font-size:13px;font-weight:600;color:var(--sub)}
+nav button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+main{padding:12px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.card h2{font-size:14px;margin:0 0 8px}
+.muted{color:var(--sub);font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--ink)}
+button.p{background:var(--accent);border-color:var(--accent);color:#fff}
+button.g{background:var(--accent2);border-color:var(--accent2);color:#1f3350}
+button.d{background:#fff;border-color:var(--bad);color:var(--bad)}
+button.b:active{transform:translateY(1px)}
+input,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:#fff;color:var(--ink);max-width:100%}
+input[type=date]{min-width:150px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+th{color:var(--sub);font-weight:600;font-size:11px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.lvb{background:var(--ink);color:#fff;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700}
+.slot{display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px dashed var(--line)}
+.slot .lab{flex:0 0 96px;font-size:12px;color:var(--sub);line-height:1.25}
+.slot .lab b{display:block;color:var(--ink);font-size:12px}
+.slot select{flex:1;min-width:0}
+.closed{color:var(--warn);font-weight:700}
+.warnbox{background:#FFF6E6;border:1px solid #F0DCB4;border-radius:10px;padding:8px 10px;font-size:12px;margin-bottom:8px}
+.okbox{background:#EEF7EE;border:1px solid #CFE6CE;border-radius:10px;padding:8px 10px;font-size:12px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scroll{overflow-x:auto}
+.pill{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;background:#fff;margin:0 4px 4px 0;display:inline-flex;align-items:center;gap:6px}
+.pill i{width:10px;height:10px;border-radius:999px;display:inline-block}
+.pill button{border:0;background:none;color:var(--bad);font-size:14px;padding:0 2px}
+.small{font-size:12px}
+.sep{height:1px;background:var(--line);margin:10px 0}
+.gate{display:inline-block;min-width:22px;text-align:center;background:#F3EDE4;border-radius:6px;font-size:11px;font-weight:700;padding:1px 5px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:99}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1 id="ttl">報酬台帳</h1>
+    <div class="langs">
+      <button data-l="ja">日</button><button data-l="zh">繁</button><button data-l="ko">한</button>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <section id="pane-plan"></section>
+  <section id="pane-sum"></section>
+  <section id="pane-castle"></section>
+  <section id="pane-data"></section>
+</main>
+<div id="toast"></div>
+<canvas id="cv" style="display:none"></canvas>
+<script>
+const SEED = {"cities":[{"j":"断剣","t":"斷剣","k":"단검","p":0,"x":0.2389,"y":0.3428,"lv":1,"w":1},{"j":"穢土","t":"穢土","k":"세토","p":0,"x":0.3888,"y":0.1415,"lv":2,"w":4},{"j":"凛風","t":"凛風","k":"냉풍","p":0,"x":0.4146,"y":0.2142,"lv":2,"w":1},{"j":"巨鎖","t":"巨鏈","k":"거련","p":0,"x":0.3254,"y":0.2771,"lv":2,"w":3},{"j":"夜蛾","t":"夜蛾","k":"야아","p":0,"x":0.2671,"y":0.2662,"lv":2,"w":2},{"j":"罪郡","t":"罪郡","k":"죄군","p":0,"x":0.3501,"y":0.2142,"lv":3,"w":2},{"j":"砕月","t":"砕月","k":"쇄월","p":0,"x":0.3046,"y":0.3459,"lv":3,"w":3},{"j":"龍決","t":"龍決","k":"용결","p":0,"x":0.3558,"y":0.3295,"lv":3,"w":6},{"j":"淵陵","t":"淵陵","k":"연릉","p":0,"x":0.3949,"y":0.2713,"lv":3,"w":5},{"j":"天祈","t":"天祈","k":"천기","p":1,"x":0.4956,"y":0.1116,"lv":1,"w":2},{"j":"隕池","t":"隕池","k":"운지","p":1,"x":0.4409,"y":0.1101,"lv":2,"w":1},{"j":"桀晶","t":"桀晶","k":"걸정","p":1,"x":0.5598,"y":0.2124,"lv":2,"w":5},{"j":"夢興","t":"夢興","k":"몽흥","p":1,"x":0.6043,"y":0.1816,"lv":2,"w":4},{"j":"旧磁","t":"舊磁","k":"구자","p":1,"x":0.6532,"y":0.1917,"lv":2,"w":1},{"j":"砕陶","t":"砕陶","k":"쇄도","p":1,"x":0.5777,"y":0.1194,"lv":3,"w":2},{"j":"鏡林","t":"鏡林","k":"경림","p":1,"x":0.4819,"y":0.1624,"lv":3,"w":3},{"j":"虹石","t":"虹石","k":"무지개광석","p":1,"x":0.457,"y":0.2027,"lv":3,"w":3},{"j":"七霞","t":"七霞","k":"칠하","p":1,"x":0.5133,"y":0.2035,"lv":3,"w":6},{"j":"天都","t":"天都","k":"천도","p":2,"x":0.5363,"y":0.3693,"lv":4,"w":4},{"j":"紀焔","t":"宇焰","k":"우염","p":2,"x":0.5042,"y":0.3212,"lv":5,"w":7},{"j":"凌鋒","t":"淩鋒","k":"능봉","p":2,"x":0.462,"y":0.3482,"lv":5,"w":5},{"j":"極関","t":"極關","k":"극관","p":2,"x":0.5722,"y":0.3153,"lv":6,"w":7},{"j":"祈障","t":"禱障","k":"도장","p":2,"x":0.4853,"y":0.2731,"lv":6,"w":6},{"j":"辰台","t":"辰台","k":"진대","p":2,"x":0.5479,"y":0.2778,"lv":6,"w":8},{"j":"添芒","t":"添芒","k":"첨망","p":2,"x":0.5912,"y":0.2684,"lv":6,"w":9},{"j":"旭陽","t":"旭陽","k":"욱양","p":2,"x":0.5933,"y":0.3755,"lv":6,"w":10},{"j":"雲境","t":"雲境","k":"클라우디아","p":2,"x":0.5042,"y":0.3982,"lv":6,"w":11},{"j":"雲哨","t":"雲哨","k":"운초","p":3,"x":0.7132,"y":0.2453,"lv":1,"w":1},{"j":"石刻","t":"砧雕","k":"침조","p":3,"x":0.6622,"y":0.2906,"lv":2,"w":3},{"j":"龍骸","t":"龍骸","k":"용해","p":3,"x":0.7291,"y":0.2887,"lv":2,"w":2},{"j":"鉄御","t":"鐵禦","k":"철어","p":3,"x":0.7967,"y":0.35,"lv":2,"w":4},{"j":"骨笛","t":"骨笛","k":"골적","p":3,"x":0.826,"y":0.3829,"lv":2,"w":1},{"j":"錆鎖","t":"鏽鏈","k":"자수 목걸이","p":3,"x":0.7768,"y":0.2953,"lv":3,"w":2},{"j":"夜息","t":"夜息","k":"야식","p":3,"x":0.6493,"y":0.3407,"lv":3,"w":5},{"j":"霜天","t":"霜天","k":"상천","p":3,"x":0.7056,"y":0.3258,"lv":3,"w":6},{"j":"冬刃","t":"冬刃","k":"동인","p":3,"x":0.7573,"y":0.3387,"lv":3,"w":3},{"j":"灰野","t":"灰野","k":"회야","p":4,"x":0.9054,"y":0.4603,"lv":1,"w":1},{"j":"夜鳥","t":"夜梟","k":"아울맨","p":4,"x":0.8674,"y":0.4978,"lv":2,"w":3},{"j":"烈光","t":"亢燭","k":"항촉","p":4,"x":0.96,"y":0.5029,"lv":2,"w":2},{"j":"焦土","t":"焦土","k":"초토","p":4,"x":0.8852,"y":0.5611,"lv":2,"w":4},{"j":"風塔","t":"風塔","k":"풍탑","p":4,"x":0.8316,"y":0.608,"lv":2,"w":1},{"j":"灼空","t":"灼空","k":"작공","p":4,"x":0.8719,"y":0.4122,"lv":3,"w":5},{"j":"焚天","t":"焚天","k":"분천","p":4,"x":0.8179,"y":0.4689,"lv":3,"w":6},{"j":"炎杉","t":"炎衫","k":"염상","p":4,"x":0.9134,"y":0.5283,"lv":3,"w":2},{"j":"熔魂","t":"熔魂","k":"영혼융해","p":4,"x":0.8211,"y":0.5423,"lv":3,"w":3},{"j":"遺翎","t":"遺翎","k":"유영","p":5,"x":0.7332,"y":0.447,"lv":4,"w":4},{"j":"魂碑","t":"魂碑","k":"혼비","p":5,"x":0.6825,"y":0.3969,"lv":5,"w":5},{"j":"御陣","t":"禦陣","k":"어진","p":5,"x":0.6951,"y":0.5443,"lv":5,"w":7},{"j":"雲弓","t":"雲弓","k":"운궁","p":5,"x":0.7497,"y":0.3989,"lv":6,"w":8},{"j":"破暁","t":"破曉","k":"새벽의","p":5,"x":0.6877,"y":0.4892,"lv":6,"w":7},{"j":"断骨","t":"斷骨","k":"단골","p":5,"x":0.771,"y":0.4903,"lv":6,"w":6},{"j":"神骸","t":"神骸","k":"신해","p":5,"x":0.7452,"y":0.5318,"lv":6,"w":11},{"j":"農盈","t":"農盈","k":"농영","p":5,"x":0.6856,"y":0.5966,"lv":6,"w":10},{"j":"剣丘","t":"劍丘","k":"검구","p":5,"x":0.727,"y":0.5876,"lv":6,"w":9},{"j":"星喉","t":"星喉","k":"성후","p":6,"x":0.7821,"y":0.6706,"lv":1,"w":1},{"j":"紡碑","t":"紡碑","k":"방비","p":6,"x":0.7288,"y":0.6917,"lv":2,"w":1},{"j":"如瞳","t":"如瞳","k":"여동","p":6,"x":0.6744,"y":0.7253,"lv":2,"w":3},{"j":"鳴林","t":"鳴林","k":"명림","p":6,"x":0.7292,"y":0.7476,"lv":2,"w":2},{"j":"界告","t":"界諭","k":"계유","p":6,"x":0.6306,"y":0.7832,"lv":2,"w":4},{"j":"浮羽","t":"浮羽","k":"부우","p":6,"x":0.6248,"y":0.7187,"lv":3,"w":5},{"j":"落星","t":"落星","k":"낙성","p":6,"x":0.6851,"y":0.6835,"lv":3,"w":6},{"j":"盈光","t":"盈光","k":"영광","p":6,"x":0.727,"y":0.6421,"lv":3,"w":3},{"j":"苔湖","t":"苔湖","k":"태호","p":6,"x":0.6826,"y":0.8019,"lv":3,"w":2},{"j":"奇巧","t":"畸巧","k":"기교","p":7,"x":0.5206,"y":0.859,"lv":1,"w":3},{"j":"無時","t":"無時","k":"무시","p":7,"x":0.5753,"y":0.8781,"lv":2,"w":1},{"j":"永光","t":"恒輝","k":"항휘","p":7,"x":0.484,"y":0.9047,"lv":2,"w":1},{"j":"散序","t":"流商","k":"유적","p":7,"x":0.4262,"y":0.8359,"lv":2,"w":3},{"j":"界橋","t":"界橋","k":"계교","p":7,"x":0.4044,"y":0.7703,"lv":2,"w":5},{"j":"帰虚","t":"歸墟","k":"귀허","p":7,"x":0.5612,"y":0.7996,"lv":3,"w":6},{"j":"未定","t":"未定","k":"미정","p":7,"x":0.4949,"y":0.9594,"lv":3,"w":2},{"j":"裂幻","t":"裂幻","k":"열환","p":7,"x":0.4191,"y":0.882,"lv":3,"w":2},{"j":"光霞","t":"光靄","k":"광애","p":7,"x":0.3592,"y":0.7808,"lv":3,"w":4},{"j":"天枝","t":"天枝","k":"하늘기지","p":8,"x":0.4923,"y":0.7123,"lv":4,"w":4},{"j":"浮歌","t":"浮歌","k":"부가","p":8,"x":0.4315,"y":0.6079,"lv":5,"w":7},{"j":"水月","t":"水月","k":"수월","p":8,"x":0.3635,"y":0.6372,"lv":5,"w":5},{"j":"未央","t":"未央","k":"끝나지않은","p":8,"x":0.4901,"y":0.6361,"lv":6,"w":11},{"j":"浣溪","t":"浣溪","k":"완계","p":8,"x":0.5405,"y":0.6369,"lv":6,"w":10},{"j":"金陵","t":"金陵","k":"금릉","p":8,"x":0.6335,"y":0.6439,"lv":6,"w":9},{"j":"花舟","t":"花舟","k":"꽃배","p":8,"x":0.4362,"y":0.6716,"lv":6,"w":7},{"j":"雲港","t":"雲港","k":"운항","p":8,"x":0.5827,"y":0.6998,"lv":6,"w":6},{"j":"葦衣","t":"葦裳","k":"위상","p":8,"x":0.472,"y":0.7652,"lv":6,"w":8},{"j":"墟井","t":"墟井","k":"허정","p":9,"x":0.3507,"y":0.7187,"lv":1,"w":1},{"j":"迷因","t":"迷因","k":"미인","p":9,"x":0.1819,"y":0.6347,"lv":2,"w":4},{"j":"夜苔","t":"夜苔","k":"야태","p":9,"x":0.2401,"y":0.6519,"lv":2,"w":3},{"j":"裂蹄","t":"裂蹄","k":"열제","p":9,"x":0.2913,"y":0.7015,"lv":2,"w":1},{"j":"影旗","t":"暗旌","k":"암생","p":9,"x":0.3209,"y":0.7761,"lv":2,"w":2},{"j":"墨羽","t":"墨羽","k":"묵우","p":9,"x":0.2392,"y":0.6042,"lv":3,"w":5},{"j":"幽夜","t":"幽夜","k":"유야","p":9,"x":0.3015,"y":0.6284,"lv":3,"w":6},{"j":"影凄","t":"影凄","k":"영처","p":9,"x":0.2405,"y":0.6925,"lv":3,"w":2},{"j":"蝕星","t":"蝕星","k":"식성","p":9,"x":0.3222,"y":0.6749,"lv":3,"w":3},{"j":"渡霞","t":"渡霞","k":"도하","p":10,"x":0.1213,"y":0.5913,"lv":1,"w":1},{"j":"織梭","t":"織梭","k":"직사","p":10,"x":0.1427,"y":0.4104,"lv":2,"w":4},{"j":"碧嶋","t":"碧嶼","k":"푸른섬","p":10,"x":0.0534,"y":0.4991,"lv":2,"w":2},{"j":"風原","t":"風原","k":"풍원","p":10,"x":0.1374,"y":0.5526,"lv":2,"w":1},{"j":"開拓","t":"開拓","k":"개강","p":10,"x":0.1469,"y":0.4823,"lv":2,"w":3},{"j":"尋羽","t":"尋羽","k":"심우","p":10,"x":0.2009,"y":0.4127,"lv":3,"w":3},{"j":"永誓","t":"永誓","k":"영세","p":10,"x":0.2039,"y":0.462,"lv":3,"w":6},{"j":"如英","t":"如英","k":"여영","p":10,"x":0.2007,"y":0.5526,"lv":3,"w":5},{"j":"展翼","t":"展翼","k":"활개","p":10,"x":0.0855,"y":0.4448,"lv":3,"w":2},{"j":"絶辰","t":"絶辰","k":"절진","p":11,"x":0.314,"y":0.5096,"lv":4,"w":4},{"j":"星軌","t":"星軌","k":"성궤","p":11,"x":0.3674,"y":0.5214,"lv":5,"w":7},{"j":"宙願","t":"宙願","k":"주원","p":11,"x":0.3227,"y":0.5745,"lv":5,"w":5},{"j":"日光","t":"晷華","k":"귀화","p":11,"x":0.3906,"y":0.4053,"lv":6,"w":11},{"j":"夢景","t":"景眠","k":"경면","p":11,"x":0.3638,"y":0.5839,"lv":6,"w":10},{"j":"幽光","t":"幽光","k":"유광","p":11,"x":0.362,"y":0.4581,"lv":6,"w":7},{"j":"深宿","t":"邃驛","k":"수역","p":11,"x":0.2682,"y":0.4616,"lv":6,"w":8},{"j":"輝野","t":"輝野","k":"휘야","p":11,"x":0.2617,"y":0.5546,"lv":6,"w":9},{"j":"晴湾","t":"晴湾","k":"청만","p":11,"x":0.3037,"y":0.4248,"lv":6,"w":6},{"j":"琴川","t":"琴川","k":"금천","p":12,"x":0.4285,"y":0.4931,"lv":7,"w":8},{"j":"羽庭","t":"羽庭","k":"우정","p":12,"x":0.6051,"y":0.5122,"lv":7,"w":8},{"j":"開陽","t":"開陽","k":"개양","p":12,"x":0.576,"y":0.4251,"lv":8,"w":10},{"j":"玉塁","t":"玉壘","k":"옥루","p":12,"x":0.5181,"y":0.4614,"lv":8,"w":8},{"j":"玄儀","t":"玄儀","k":"현의","p":12,"x":0.6284,"y":0.4673,"lv":8,"w":9},{"j":"天旋","t":"天璿","k":"천선","p":12,"x":0.4664,"y":0.5529,"lv":8,"w":9},{"j":"聖御","t":"聖禦","k":"성어","p":12,"x":0.5695,"y":0.5689,"lv":8,"w":11},{"j":"神関","t":"神關","k":"신관","p":12,"x":0.6281,"y":0.5767,"lv":9,"w":10},{"j":"帝翼","t":"帝翼","k":"날개","p":12,"x":0.5227,"y":0.5161,"lv":10,"w":12}],"provs":[["裁淵","裁渊","심판의 심연"],["墜星","星堕","혜성"],["雲澤","雲沢","구름의연못"],["朔崖","初崖","사애"],["燼原","灰原","재의 근원"],["天野","天野","천야"],["穹谷","穹谷","천궁골 짜기"],["隕隙","隕隙","추락의 균열"],["雲垣","雲垣","운원"],["寂嶼","寂島","적막의 섬"],["翎川","羽川","영천"],["天樞","天柩","천구"],["翼都","翼都","버디 시티"]],"col":["#8E7CB8","#6E5E9C","#A99BD0","#E39AB4","#C86F92","#F0B7CC","#7FB07A","#5C8A57","#A7CB8E","#E0C24E","#C6A431","#EBD98A","#5B8FC4"],"boss":{"焚天":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":3,"lv":4,"g":2,"st":0},{"ty":2,"lv":2,"g":6,"st":1},{"ty":0,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"灼空":{"s":[{"ty":3,"lv":3,"g":5,"st":0},{"ty":0,"lv":2,"g":1,"st":0},{"ty":2,"lv":4,"g":7,"st":0},{"ty":1,"lv":1,"g":3,"st":1,"auto":1}],"ng":4},"熔魂":{"s":[{"ty":3,"lv":2,"g":4,"st":0},{"ty":0,"lv":4,"g":2,"st":0}],"ng":4},"夜鳥":{"s":[{"ty":2,"lv":3,"g":6,"st":0},{"ty":1,"lv":1,"g":5,"st":0}],"ng":4},"灰野":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":1,"lv":3,"g":4,"st":0},{"ty":2,"lv":2,"g":1,"st":1},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"風塔":{"s":[{"ty":0,"lv":3,"g":7,"st":0},{"ty":3,"lv":1,"g":5,"st":0},{"ty":1,"lv":4,"g":2,"st":0},{"ty":2,"lv":2,"g":4,"st":1,"auto":1}],"ng":4},"焦土":{"s":[{"ty":1,"lv":3,"g":6,"st":0},{"ty":2,"lv":1,"g":4,"st":0},{"ty":0,"lv":4,"g":1,"st":1},{"ty":3,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"炎杉":{"s":[{"ty":0,"lv":3,"g":6,"st":0},{"ty":2,"lv":2,"g":3,"st":0}],"ng":4},"烈光":{"s":[{"ty":0,"lv":1,"g":7,"st":0},{"ty":3,"lv":3,"g":5,"st":0},{"ty":2,"lv":4,"g":2,"st":0},{"ty":1,"lv":2,"g":4,"st":1,"auto":1}],"ng":4},"断剣":{"s":[{"ty":1,"lv":3,"g":6,"st":0},{"ty":2,"lv":2,"g":4,"st":0},{"ty":0,"lv":4,"g":3,"st":0},{"ty":3,"lv":1,"g":1,"st":1,"auto":1}],"ng":4},"穢土":{"s":[{"ty":0,"lv":2,"g":6,"st":0},{"ty":3,"lv":3,"g":4,"st":0},{"ty":2,"lv":4,"g":3,"st":0},{"ty":1,"lv":1,"g":1,"st":1,"auto":1}],"ng":4},"巨鎖":{"s":[{"ty":3,"lv":4,"g":6,"st":0},{"ty":0,"lv":2,"g":5,"st":0},{"ty":1,"lv":3,"g":3,"st":0},{"ty":2,"lv":1,"g":7,"st":1,"auto":1}],"ng":4},"凛風":{"s":[{"ty":3,"lv":3,"g":5,"st":0},{"ty":0,"lv":4,"g":2,"st":0},{"ty":1,"lv":1,"g":7,"st":1},{"ty":2,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"夜蛾":{"s":[{"ty":3,"lv":1,"g":5,"st":0},{"ty":1,"lv":3,"g":2,"st":0},{"ty":2,"lv":4,"g":7,"st":0},{"ty":0,"lv":2,"g":4,"st":1,"auto":1}],"ng":4},"罪郡":{"s":[{"ty":1,"lv":2,"g":6,"st":0},{"ty":3,"lv":4,"g":5,"st":0}],"ng":4},"砕月":{"s":[{"ty":3,"lv":1,"g":4,"st":0},{"ty":2,"lv":3,"g":7,"st":0},{"ty":0,"lv":4,"g":5,"st":1},{"ty":1,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"龍決":{"s":[{"ty":1,"lv":4,"g":4,"st":0},{"ty":3,"lv":1,"g":2,"st":0},{"ty":2,"lv":3,"g":1,"st":0},{"ty":0,"lv":2,"g":6,"st":1,"auto":1}],"ng":4},"淵陵":{"s":[{"ty":2,"lv":4,"g":5,"st":0},{"ty":1,"lv":2,"g":3,"st":1},{"ty":0,"lv":1,"g":7,"st":0},{"ty":3,"lv":3,"g":0,"st":0,"auto":1}],"ng":4},"天祈":{"s":[{"ty":0,"lv":1,"g":5,"st":0},{"ty":1,"lv":3,"g":7,"st":0},{"ty":2,"lv":2,"g":4,"st":1},{"ty":3,"lv":4,"g":2,"st":0}],"ng":4},"隕池":{"s":[{"ty":2,"lv":2,"g":6,"st":0},{"ty":1,"lv":1,"g":1,"st":1},{"ty":0,"lv":3,"g":4,"st":0},{"ty":3,"lv":4,"g":3,"st":0}],"ng":4},"天旋":{"s":[{"ty":3,"lv":4,"g":1,"st":0},{"ty":1,"lv":3,"g":2,"st":0},{"ty":2,"lv":1,"g":4,"st":0},{"ty":0,"lv":2,"g":6,"st":1}],"ng":4},"玄儀":{"s":[{"ty":1,"lv":1,"g":6,"st":0},{"ty":3,"lv":2,"g":1,"st":1},{"ty":0,"lv":4,"g":4,"st":0},{"ty":2,"lv":3,"g":3,"st":0}],"ng":4},"玉塁":{"s":[{"ty":1,"lv":1,"g":6,"st":0},{"ty":0,"lv":2,"g":1,"st":1},{"ty":2,"lv":4,"g":4,"st":0},{"ty":3,"lv":3,"g":3,"st":0}],"ng":4},"琴川":{"s":[{"ty":0,"lv":2,"g":5,"st":0},{"ty":2,"lv":3,"g":7,"st":0},{"ty":1,"lv":1,"g":4,"st":1},{"ty":3,"lv":4,"g":2,"st":0}],"ng":4},"神関":{"s":[{"ty":2,"lv":3,"g":5,"st":0},{"ty":0,"lv":4,"g":7,"st":0},{"ty":1,"lv":2,"g":3,"st":1},{"ty":3,"lv":1,"g":1,"st":0}],"ng":4},"羽庭":{"s":[{"ty":0,"lv":1,"g":3,"st":1},{"ty":1,"lv":3,"g":5,"st":0},{"ty":2,"lv":4,"g":1,"st":0},{"ty":3,"lv":2,"g":7,"st":0}],"ng":4},"聖御":{"s":[{"ty":2,"lv":1,"g":5,"st":1},{"ty":3,"lv":4,"g":7,"st":0},{"ty":0,"lv":3,"g":4,"st":0},{"ty":1,"lv":2,"g":2,"st":0}],"ng":4},"開陽":{"s":[{"ty":3,"lv":2,"g":6,"st":0},{"ty":0,"lv":1,"g":7,"st":1},{"ty":2,"lv":4,"g":5,"st":0},{"ty":1,"lv":3,"g":3,"st":0}],"ng":4},"桀晶":{"s":[{"ty":2,"lv":1,"g":3,"st":1},{"ty":3,"lv":4,"g":5,"st":0},{"ty":0,"lv":2,"g":1,"st":0},{"ty":1,"lv":3,"g":7,"st":0}],"ng":4},"夢興":{"s":[{"ty":1,"lv":2,"g":6,"st":0},{"ty":0,"lv":1,"g":1,"st":1},{"ty":3,"lv":4,"g":4,"st":0},{"ty":2,"lv":3,"g":3,"st":0}],"ng":4},"旧磁":{"s":[{"ty":2,"lv":4,"g":5,"st":0},{"ty":3,"lv":2,"g":7,"st":0},{"ty":0,"lv":1,"g":4,"st":1},{"ty":1,"lv":3,"g":2,"st":0}],"ng":4},"砕陶":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":0,"lv":2,"g":7,"st":1},{"ty":2,"lv":4,"g":5,"st":0},{"ty":1,"lv":1,"g":3,"st":0}],"ng":4},"鏡林":{"s":[{"ty":1,"lv":4,"g":6,"st":0},{"ty":0,"lv":2,"g":3,"st":0}],"ng":4},"虹石":{"s":[{"ty":1,"lv":3,"g":5,"st":1},{"ty":2,"lv":1,"g":2,"st":0}],"ng":4},"七霞":{"s":[{"ty":1,"lv":2,"g":4,"st":0},{"ty":3,"lv":3,"g":6,"st":1}],"ng":4},"雲哨":{"s":[{"ty":2,"lv":3,"g":4,"st":0},{"ty":1,"lv":4,"g":3,"st":0},{"ty":3,"lv":1,"g":1,"st":1},{"ty":0,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"石刻":{"s":[{"ty":3,"lv":2,"g":7,"st":1},{"ty":0,"lv":4,"g":6,"st":0},{"ty":2,"lv":3,"g":5,"st":0},{"ty":1,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"龍骸":{"s":[{"ty":3,"lv":2,"g":7,"st":0},{"ty":0,"lv":3,"g":5,"st":0},{"ty":1,"lv":4,"g":4,"st":1},{"ty":2,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"鉄御":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":3,"lv":4,"g":3,"st":0},{"ty":2,"lv":1,"g":1,"st":1},{"ty":0,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"骨笛":{"s":[{"ty":1,"lv":3,"g":7,"st":0},{"ty":0,"lv":4,"g":5,"st":0},{"ty":3,"lv":1,"g":4,"st":1},{"ty":2,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"錆鎖":{"s":[{"ty":2,"lv":3,"g":6,"st":0},{"ty":0,"lv":4,"g":3,"st":0}],"ng":4},"夜息":{"s":[{"ty":2,"lv":4,"g":5,"st":0},{"ty":3,"lv":3,"g":1,"st":0},{"ty":1,"lv":1,"g":7,"st":0},{"ty":0,"lv":2,"g":3,"st":1,"auto":1}],"ng":4},"霜天":{"s":[{"ty":2,"lv":1,"g":4,"st":0}],"ng":4},"冬刃":{"s":[{"ty":0,"lv":4,"g":2,"st":0},{"ty":2,"lv":3,"g":7,"st":0}],"ng":4},"星喉":{"s":[{"ty":1,"lv":4,"g":6,"st":0},{"ty":0,"lv":1,"g":1,"st":1},{"ty":2,"lv":3,"g":4,"st":0},{"ty":3,"lv":2,"g":3,"st":0}],"ng":4},"紡碑":{"s":[{"ty":0,"lv":3,"g":5,"st":0},{"ty":1,"lv":2,"g":7,"st":0},{"ty":3,"lv":1,"g":4,"st":1},{"ty":2,"lv":4,"g":2,"st":0}],"ng":4},"帝翼":{"s":[{"ty":1,"lv":1,"g":5,"st":0},{"ty":2,"lv":3,"g":1,"st":0},{"ty":0,"lv":1,"g":4,"st":0}],"ng":6},"如瞳":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":1,"lv":2,"g":7,"st":1},{"ty":0,"lv":1,"g":5,"st":0},{"ty":2,"lv":4,"g":3,"st":0}],"ng":4},"浮羽":{"s":[{"ty":1,"lv":1,"g":3,"st":1},{"ty":2,"lv":4,"g":5,"st":0},{"ty":3,"lv":2,"g":1,"st":0},{"ty":0,"lv":3,"g":7,"st":0}],"ng":4},"界告":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":2,"lv":2,"g":1,"st":1},{"ty":1,"lv":4,"g":4,"st":0},{"ty":0,"lv":1,"g":3,"st":0}],"ng":4},"鳴林":{"s":[{"ty":3,"lv":4,"g":5,"st":0},{"ty":0,"lv":1,"g":7,"st":0},{"ty":2,"lv":2,"g":4,"st":1},{"ty":1,"lv":3,"g":2,"st":0}],"ng":4},"渡霞":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":2,"lv":3,"g":3,"st":0},{"ty":1,"lv":1,"g":1,"st":1},{"ty":3,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"織梭":{"s":[{"ty":3,"lv":4,"g":6,"st":0},{"ty":0,"lv":3,"g":4,"st":0},{"ty":2,"lv":1,"g":3,"st":0},{"ty":1,"lv":2,"g":1,"st":1,"auto":1}],"ng":4},"碧嶋":{"s":[{"ty":1,"lv":4,"g":5,"st":0},{"ty":1,"lv":1,"g":2,"st":0},{"ty":0,"lv":3,"g":7,"st":0}],"ng":4},"風原":{"s":[{"ty":1,"lv":2,"g":7,"st":0},{"ty":2,"lv":3,"g":4,"st":1},{"ty":3,"lv":4,"g":2,"st":0},{"ty":0,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"永光":{"s":[{"ty":1,"lv":3,"g":5,"st":0},{"ty":2,"lv":4,"g":7,"st":0},{"ty":3,"lv":2,"g":4,"st":1},{"ty":0,"lv":1,"g":2,"st":0}],"ng":4},"無時":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":1,"lv":1,"g":1,"st":1},{"ty":2,"lv":2,"g":4,"st":0},{"ty":0,"lv":4,"g":3,"st":0}],"ng":4},"奇巧":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":2,"lv":1,"g":7,"st":1},{"ty":1,"lv":3,"g":5,"st":0},{"ty":3,"lv":2,"g":3,"st":0}],"ng":4},"盈光":{"s":[{"ty":0,"lv":3,"g":4,"st":0},{"ty":2,"lv":2,"g":5,"st":1},{"ty":3,"lv":4,"g":2,"st":0},{"ty":1,"lv":1,"g":7,"st":0}],"ng":4},"苔湖":{"s":[{"ty":3,"lv":4,"g":6,"st":0},{"ty":2,"lv":1,"g":7,"st":1},{"ty":0,"lv":3,"g":5,"st":0},{"ty":1,"lv":2,"g":3,"st":0}],"ng":4},"落星":{"s":[{"ty":3,"lv":3,"g":4,"st":0},{"ty":1,"lv":1,"g":6,"st":1},{"ty":0,"lv":2,"g":2,"st":0},{"ty":2,"lv":4,"g":1,"st":0}],"ng":4},"開拓":{"s":[{"ty":1,"lv":1,"g":7,"st":1},{"ty":2,"lv":4,"g":5,"st":0},{"ty":0,"lv":3,"g":3,"st":0},{"ty":3,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"尋羽":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":2,"lv":1,"g":2,"st":0},{"ty":3,"lv":4,"g":7,"st":0},{"ty":0,"lv":2,"g":5,"st":1,"auto":1}],"ng":4},"永誓":{"s":[{"ty":2,"lv":3,"g":4,"st":0},{"ty":0,"lv":2,"g":2,"st":0},{"ty":1,"lv":4,"g":6,"st":1},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"如英":{"s":[{"ty":3,"lv":4,"g":5,"st":0},{"ty":2,"lv":3,"g":3,"st":1},{"ty":0,"lv":2,"g":7,"st":0},{"ty":1,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"展翼":{"s":[{"ty":1,"lv":4,"g":7,"st":1},{"ty":0,"lv":2,"g":5,"st":0},{"ty":2,"lv":3,"g":3,"st":0},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"光霞":{"s":[{"ty":3,"lv":1,"g":6,"st":0},{"ty":2,"lv":2,"g":1,"st":1},{"ty":0,"lv":4,"g":4,"st":0},{"ty":1,"lv":3,"g":3,"st":0}],"ng":4},"剣丘":{"s":[{"ty":2,"lv":4,"g":5,"st":0},{"ty":1,"lv":1,"g":3,"st":0}],"ng":4},"墟井":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":1,"lv":2,"g":1,"st":1},{"ty":2,"lv":3,"g":4,"st":0},{"ty":3,"lv":1,"g":3,"st":0}],"ng":4},"墨羽":{"s":[{"ty":0,"lv":2,"g":3,"st":1},{"ty":1,"lv":4,"g":5,"st":0},{"ty":2,"lv":3,"g":1,"st":0},{"ty":3,"lv":1,"g":7,"st":0}],"ng":4},"夜苔":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":1,"lv":2,"g":7,"st":1},{"ty":3,"lv":3,"g":5,"st":0},{"ty":2,"lv":1,"g":3,"st":0}],"ng":4},"天都":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":3,"lv":1,"g":6,"st":1},{"ty":0,"lv":4,"g":2,"st":0},{"ty":2,"lv":2,"g":1,"st":0}],"ng":4},"紀焔":{"s":[{"ty":3,"lv":1,"g":3,"st":1},{"ty":2,"lv":2,"g":5,"st":0},{"ty":1,"lv":4,"g":1,"st":0},{"ty":0,"lv":3,"g":7,"st":0}],"ng":4},"幽夜":{"s":[{"ty":1,"lv":4,"g":4,"st":0},{"ty":2,"lv":1,"g":6,"st":1},{"ty":0,"lv":2,"g":2,"st":0},{"ty":3,"lv":3,"g":1,"st":0}],"ng":4},"影凄":{"s":[{"ty":1,"lv":3,"g":6,"st":0},{"ty":3,"lv":2,"g":7,"st":1},{"ty":2,"lv":4,"g":5,"st":0},{"ty":0,"lv":1,"g":3,"st":0}],"ng":4},"断骨":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":2,"lv":2,"g":3,"st":0},{"ty":0,"lv":4,"g":1,"st":1},{"ty":1,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"影旗":{"s":[{"ty":0,"lv":4,"g":5,"st":0},{"ty":2,"lv":3,"g":7,"st":0},{"ty":1,"lv":2,"g":4,"st":1},{"ty":3,"lv":1,"g":2,"st":0}],"ng":4},"未定":{"s":[{"ty":0,"lv":2,"g":5,"st":0},{"ty":2,"lv":4,"g":7,"st":0},{"ty":3,"lv":1,"g":4,"st":1},{"ty":1,"lv":3,"g":2,"st":0}],"ng":4},"帰虚":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":2,"lv":1,"g":6,"st":1},{"ty":3,"lv":2,"g":2,"st":0},{"ty":0,"lv":4,"g":1,"st":0}],"ng":4},"散序":{"s":[{"ty":3,"lv":2,"g":4,"st":0},{"ty":2,"lv":1,"g":5,"st":1},{"ty":1,"lv":4,"g":2,"st":0},{"ty":0,"lv":3,"g":7,"st":0}],"ng":4},"凌鋒":{"s":[{"ty":3,"lv":3,"g":6,"st":0},{"ty":2,"lv":1,"g":1,"st":1},{"ty":1,"lv":4,"g":4,"st":0},{"ty":0,"lv":2,"g":3,"st":0}],"ng":4},"界橋":{"s":[{"ty":3,"lv":2,"g":3,"st":1},{"ty":2,"lv":1,"g":5,"st":0},{"ty":1,"lv":4,"g":1,"st":0},{"ty":0,"lv":3,"g":7,"st":0}],"ng":4},"破暁":{"s":[{"ty":0,"lv":3,"g":4,"st":0},{"ty":2,"lv":4,"g":2,"st":0},{"ty":1,"lv":2,"g":1,"st":0},{"ty":3,"lv":1,"g":6,"st":1,"auto":1}],"ng":4},"神骸":{"s":[{"ty":1,"lv":1,"g":5,"st":1},{"ty":0,"lv":4,"g":4,"st":0},{"ty":1,"lv":3,"g":7,"st":0}],"ng":4},"御陣":{"s":[{"ty":0,"lv":4,"g":5,"st":0},{"ty":1,"lv":3,"g":3,"st":0}],"ng":4},"蝕星":{"s":[{"ty":0,"lv":2,"g":4,"st":0},{"ty":1,"lv":1,"g":5,"st":1},{"ty":3,"lv":3,"g":2,"st":0},{"ty":2,"lv":4,"g":7,"st":0}],"ng":4},"裂幻":{"s":[{"ty":3,"lv":1,"g":6,"st":0},{"ty":0,"lv":2,"g":7,"st":1},{"ty":1,"lv":3,"g":5,"st":0},{"ty":2,"lv":4,"g":3,"st":0}],"ng":4},"裂蹄":{"s":[{"ty":2,"lv":2,"g":5,"st":0},{"ty":3,"lv":4,"g":7,"st":0},{"ty":1,"lv":1,"g":4,"st":1},{"ty":0,"lv":3,"g":2,"st":0}],"ng":4},"農盈":{"s":[{"ty":0,"lv":2,"g":7,"st":0},{"ty":2,"lv":4,"g":4,"st":1},{"ty":3,"lv":3,"g":2,"st":0},{"ty":1,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"迷因":{"s":[{"ty":0,"lv":4,"g":6,"st":0},{"ty":2,"lv":1,"g":1,"st":1},{"ty":3,"lv":3,"g":4,"st":0},{"ty":1,"lv":2,"g":3,"st":0}],"ng":4},"遺翎":{"s":[{"ty":2,"lv":3,"g":5,"st":0},{"ty":1,"lv":4,"g":3,"st":1},{"ty":0,"lv":2,"g":7,"st":0},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"雲弓":{"s":[{"ty":3,"lv":4,"g":7,"st":0},{"ty":1,"lv":1,"g":5,"st":0},{"ty":2,"lv":3,"g":4,"st":1},{"ty":0,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"魂碑":{"s":[{"ty":0,"lv":2,"g":6,"st":0},{"ty":1,"lv":3,"g":4,"st":0},{"ty":2,"lv":4,"g":1,"st":1},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"天枝":{"s":[{"ty":2,"lv":3,"g":5,"st":0},{"ty":1,"lv":2,"g":3,"st":1},{"ty":3,"lv":4,"g":1,"st":0},{"ty":0,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"浮歌":{"s":[{"ty":1,"lv":4,"g":7,"st":1},{"ty":0,"lv":3,"g":5,"st":0},{"ty":3,"lv":1,"g":3,"st":0},{"ty":2,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"水月":{"s":[{"ty":2,"lv":3,"g":6,"st":0},{"ty":3,"lv":4,"g":4,"st":0},{"ty":0,"lv":1,"g":3,"st":0},{"ty":1,"lv":2,"g":1,"st":1,"auto":1}],"ng":4},"未央":{"s":[{"ty":1,"lv":2,"g":4,"st":0},{"ty":3,"lv":3,"g":2,"st":0}],"ng":4},"浣溪":{"s":[{"ty":3,"lv":1,"g":7,"st":0},{"ty":1,"lv":3,"g":4,"st":1},{"ty":2,"lv":4,"g":2,"st":0},{"ty":0,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"金陵":{"s":[{"ty":2,"lv":3,"g":7,"st":1},{"ty":1,"lv":2,"g":6,"st":0},{"ty":0,"lv":4,"g":3,"st":0},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"花舟":{"s":[{"ty":1,"lv":4,"g":5,"st":1},{"ty":0,"lv":3,"g":2,"st":0}],"ng":4},"雲港":{"s":[{"ty":3,"lv":2,"g":6,"st":0},{"ty":2,"lv":3,"g":4,"st":0},{"ty":1,"lv":4,"g":3,"st":0},{"ty":0,"lv":1,"g":1,"st":1,"auto":1}],"ng":4},"葦衣":{"s":[{"ty":2,"lv":3,"g":7,"st":0},{"ty":3,"lv":2,"g":5,"st":0},{"ty":0,"lv":4,"g":4,"st":1},{"ty":1,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"絶辰":{"s":[{"ty":1,"lv":4,"g":4,"st":0},{"ty":2,"lv":1,"g":2,"st":0},{"ty":3,"lv":3,"g":1,"st":0},{"ty":0,"lv":2,"g":6,"st":1,"auto":1}],"ng":4},"星軌":{"s":[{"ty":2,"lv":1,"g":5,"st":0},{"ty":0,"lv":4,"g":7,"st":0}],"ng":4},"宙願":{"s":[{"ty":1,"lv":3,"g":4,"st":0},{"ty":2,"lv":4,"g":3,"st":0},{"ty":0,"lv":2,"g":1,"st":1},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"日光":{"s":[{"ty":0,"lv":4,"g":7,"st":1},{"ty":1,"lv":1,"g":6,"st":0},{"ty":2,"lv":3,"g":3,"st":0},{"ty":3,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"夢景":{"s":[{"ty":0,"lv":1,"g":7,"st":0},{"ty":0,"lv":3,"g":5,"st":0},{"ty":2,"lv":4,"g":2,"st":0}],"ng":4},"幽光":{"s":[{"ty":3,"lv":1,"g":5,"st":1},{"ty":2,"lv":4,"g":2,"st":0},{"ty":0,"lv":3,"g":7,"st":0},{"ty":1,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"深宿":{"s":[{"ty":1,"lv":2,"g":7,"st":0},{"ty":2,"lv":4,"g":2,"st":0}],"ng":4},"輝野":{"s":[{"ty":1,"lv":1,"g":7,"st":1},{"ty":3,"lv":4,"g":5,"st":0},{"ty":0,"lv":3,"g":3,"st":0},{"ty":2,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"晴湾":{"s":[{"ty":1,"lv":4,"g":6,"st":0},{"ty":3,"lv":3,"g":4,"st":0},{"ty":0,"lv":2,"g":3,"st":0},{"ty":2,"lv":1,"g":1,"st":1,"auto":1}],"ng":4},"雲境":{"s":[{"ty":1,"lv":3,"g":7,"st":1},{"ty":3,"lv":1,"g":6,"st":0},{"ty":0,"lv":4,"g":3,"st":0},{"ty":2,"lv":2,"g":0,"st":0,"auto":1}],"ng":4},"旭陽":{"s":[{"ty":2,"lv":3,"g":7,"st":0},{"ty":1,"lv":4,"g":4,"st":1},{"ty":0,"lv":2,"g":2,"st":0},{"ty":3,"lv":1,"g":0,"st":0,"auto":1}],"ng":4},"添芒":{"s":[{"ty":0,"lv":3,"g":5,"st":0},{"ty":2,"lv":2,"g":3,"st":0}],"ng":4},"辰台":{"s":[{"ty":1,"lv":3,"g":7,"st":0},{"ty":0,"lv":2,"g":5,"st":0},{"ty":3,"lv":4,"g":2,"st":0},{"ty":2,"lv":1,"g":4,"st":1,"auto":1}],"ng":4},"祈障":{"s":[{"ty":1,"lv":4,"g":6,"st":0},{"ty":0,"lv":2,"g":4,"st":0},{"ty":3,"lv":3,"g":3,"st":0},{"ty":2,"lv":1,"g":1,"st":1,"auto":1}],"ng":4},"極関":{"s":[{"ty":3,"lv":4,"g":4,"st":0},{"ty":2,"lv":2,"g":2,"st":0}],"ng":4}}};
+/* ---------- i18n ---------- */
+const L = {
+ ja:{title:'報酬台帳',plan:'予定',sum:'集計',castle:'城',data:'データ',
+  date:'城戦の日',addCastle:'城を追加',prov:'州',city:'城',occupier:'占拠ギルド',
+  none:'（未定）',closed:'閉門・配布',gate:'の門',star:'専属',
+  noboss:'ボスなし参加ギルド',add:'追加',del:'削除',png:'画像を出力',
+  rank:'順位',guild:'ギルド',boxp:'宝箱+',box:'宝箱',ticket:'券',total:'合計',
+  battles:'城戦',newBattle:'新しい城戦を作る',noBattle:'まだ城戦がありません。',
+  editBattle:'編集する城戦',incomplete:'英霊が4体そろっていない城',
+  save:'保存',imp:'読み込み',exp:'書き出し',sync:'同期',pull:'受信',push:'送信',
+  guilds:'ギルド名簿',rewards:'報酬表',resetAll:'全消去',
+  impGM:'Gate Map のJSON',impCP:'城取り計画のJSON',
+  slotLabel:'Lv',spirit:'英霊',fac:'施設',
+  breakdown:'城戦ごとの内訳',noData:'データがありません。',
+  guildName:'ギルド名',color:'色',
+  castleLv:'城Lv',place1:'1位',place2:'2位',place3:'3位',place4:'4位',place5:'5位以下',
+  hint4:'4体そろっていない城は、予定を作るときに順位が正しく出ません。この画面で補ってください。',
+  copyOK:'コピーしました',saved:'保存しました',
+  confirmDel:'削除しますか？',
+  entryReward:'入場報酬を受け取るギルド'},
+ zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
+  date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
+  none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
+  noboss:'未取得英靈的公會',add:'新增',del:'刪除',png:'輸出圖片',
+  rank:'名次',guild:'公會',boxp:'寶箱+',box:'寶箱',ticket:'券',total:'合計',
+  battles:'攻城',newBattle:'建立新的攻城',noBattle:'尚無攻城紀錄。',
+  editBattle:'編輯的攻城',incomplete:'英靈不足4隻的城池',
+  save:'儲存',imp:'讀取',exp:'匯出',sync:'同步',pull:'接收',push:'傳送',
+  guilds:'公會名冊',rewards:'獎勵表',resetAll:'全部清除',
+  impGM:'Gate Map 的JSON',impCP:'攻城計畫的JSON',
+  slotLabel:'Lv',spirit:'英靈',fac:'設施',
+  breakdown:'各場攻城明細',noData:'沒有資料。',
+  guildName:'公會名稱',color:'顏色',
+  castleLv:'城池Lv',place1:'第1名',place2:'第2名',place3:'第3名',place4:'第4名',place5:'第5名以下',
+  hint4:'英靈不足4隻的城池，預定表無法正確計算名次。請在此畫面補齊。',
+  copyOK:'已複製',saved:'已儲存',
+  confirmDel:'要刪除嗎？',
+  entryReward:'獲得入場獎勵的公會'},
+ ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
+  date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
+  none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
+  noboss:'영령을 얻지 못한 길드',add:'추가',del:'삭제',png:'이미지 출력',
+  rank:'순위',guild:'길드',boxp:'상자+',box:'상자',ticket:'권',total:'합계',
+  battles:'성전',newBattle:'새 성전 만들기',noBattle:'아직 성전이 없습니다.',
+  editBattle:'편집할 성전',incomplete:'영령이 4체가 아닌 성',
+  save:'저장',imp:'불러오기',exp:'내보내기',sync:'동기화',pull:'받기',push:'보내기',
+  guilds:'길드 명부',rewards:'보상표',resetAll:'전체 삭제',
+  impGM:'Gate Map JSON',impCP:'성 공략 계획 JSON',
+  slotLabel:'Lv',spirit:'영령',fac:'시설',
+  breakdown:'성전별 내역',noData:'데이터가 없습니다.',
+  guildName:'길드명',color:'색',
+  castleLv:'성 Lv',place1:'1위',place2:'2위',place3:'3위',place4:'4위',place5:'5위 이하',
+  hint4:'영령이 4체가 아닌 성은 순위를 정확히 계산할 수 없습니다. 이 화면에서 채워주세요.',
+  copyOK:'복사했습니다',saved:'저장했습니다',
+  confirmDel:'삭제하시겠습니까?',
+  entryReward:'입장 보상을 받는 길드'}
+};
+const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
+           {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
+const SPN=[{ja:'オウル',zh:'逢梟',ko:'네스터'},{ja:'千蘭',zh:'千櫻',ko:'블로썸'},
+           {ja:'月花',zh:'阿卯',ko:'리묘'},{ja:'神熾',zh:'神熾',ko:'프로메'}];
+
+/* ---------- 報酬表（城Lv → 順位ごとの[宝箱+, 宝箱, 券]） ---------- */
+const DEF_REWARDS={
+ 1:[[1,5,300],[0,5,250],[0,3,200],[0,3,200],[0,3,200]],
+ 2:[[3,8,400],[0,8,350],[0,5,350],[0,5,350],[0,5,350]],
+ 3:[[5,15,450],[3,15,400],[1,10,350],[1,10,350],[1,10,350]],
+ 4:[[4,15,500],[4,15,450],[2,10,400],[2,10,400],[2,10,400]],
+ 5:[[5,25,650],[5,25,600],[3,15,500],[3,15,500],[3,15,500]],
+ 6:[[10,25,750],[7,25,700],[4,15,600],[4,15,600],[4,15,600]],
+ 7:[[15,30,830],[8,30,800],[6,25,750],[4,15,750],[4,15,750]],
+ 8:[[20,30,880],[10,30,850],[8,25,830],[5,15,750],[5,15,750]],
+ 9:[[25,35,1000],[20,35,900],[15,30,850],[10,16,700],[10,16,700]],
+ 10:[[30,35,1200],[30,35,1100],[15,30,1000],[10,20,800],[10,20,800]]
+};
+const PASTEL=['#F2B5C4','#9FD8B8','#A9C6F0','#F5D28C','#C8B4E8','#8FD9D4','#F0A98C','#B9DE8C',
+ '#E4B0DE','#8FC4A0','#D7C9A0','#9BB8D6','#EFC2A0','#B0D2E8','#D9A9A9','#A8E0C4'];
+
+/* ---------- 状態 ---------- */
+const KEY='arl.v1';
+let S={lang:'ja',boss:{},guilds:[],battles:[],rewards:null,cur:null,u:0};
+const CITY={}, BYPROV=[];
+SEED.cities.forEach(c=>{CITY[c.j]=c; (BYPROV[c.p]=BYPROV[c.p]||[]).push(c);});
+function T(k){return (L[S.lang]&&L[S.lang][k])||L.ja[k]||k;}
+function cname(j){const c=CITY[j];if(!c)return j;return S.lang==='zh'?c.t:S.lang==='ko'?c.k:c.j;}
+function cname3(j){const c=CITY[j];if(!c)return j;return c.j+'｜'+c.t+'｜'+c.k;}
+function pname(i){const p=SEED.provs[i];return S.lang==='zh'?p[0]:S.lang==='ko'?p[2]:p[1];}
+function facn(t){return FAC[t][S.lang];}
+function spn(t){return SPN[t][S.lang];}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1600);}
+
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r){const o=JSON.parse(r); Object.assign(S,o);} }catch(e){}
+  if(!S.rewards) S.rewards=JSON.parse(JSON.stringify(DEF_REWARDS));
+  if(!S.boss||!Object.keys(S.boss).length) S.boss=JSON.parse(JSON.stringify(SEED.boss));
+  if(!S.guilds) S.guilds=[];
+  if(!S.battles) S.battles=[];
+}
+function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}schedulePush();}
+
+/* ---------- ギルド ---------- */
+function gcolor(n){const g=S.guilds.find(x=>x.n===n);return g?g.c:'#EEE';}
+function addGuild(n,c){
+  n=(n||'').trim(); if(!n) return null;
+  let g=S.guilds.find(x=>x.n===n);
+  if(!g){g={n:n,c:c||PASTEL[S.guilds.length%PASTEL.length]};S.guilds.push(g);}
+  return g;
+}
+function guildSelect(val,onch){
+  const s=document.createElement('select');
+  const o0=new Option(T('none'),''); s.appendChild(o0);
+  S.guilds.slice().sort((a,b)=>a.n.localeCompare(b.n)).forEach(g=>s.appendChild(new Option(g.n,g.n)));
+  s.appendChild(new Option('＋ '+T('add')+'…','__new'));
+  s.value=val||'';
+  s.onchange=()=>{
+    if(s.value==='__new'){
+      const n=prompt(T('guildName')); 
+      if(n&&n.trim()){addGuild(n.trim());save();onch(n.trim());render();}
+      else{s.value=val||'';}
+      return;
+    }
+    onch(s.value);
+  };
+  return s;
+}
+
+/* ---------- 英霊枠 ---------- */
+function slots(j){
+  const b=S.boss[j]; if(!b) return [];
+  return (b.s||[]).slice().sort((a,b)=>b.lv-a.lv);
+}
+function complete(j){
+  const s=(S.boss[j]||{}).s||[];
+  if(s.length!==4) return false;
+  return new Set(s.map(x=>x.lv)).size===4 && new Set(s.map(x=>x.ty)).size===4;
+}
+function rankOf(lv){return 5-lv;}           // Lv4→1位 … Lv1→4位
+function reward(castleLv,rank){
+  const t=S.rewards[castleLv]||S.rewards[1];
+  return t[Math.min(rank,t.length)-1]||[0,0,0];
+}
+
+/* ---------- 集計 ---------- */
+function tally(){
+  const m={};
+  const get=n=>m[n]||(m[n]={n:n,bp:0,bx:0,tk:0,r:[0,0,0,0,0]});
+  S.battles.forEach(b=>{
+    b.rows.forEach(r=>{
+      const clv=(CITY[r.c]||{}).lv||1;
+      slots(r.c).forEach(sl=>{
+        const g=(r.a||{})[sl.lv]; if(!g) return;
+        const rk=rankOf(sl.lv), rw=reward(clv,rk), o=get(g);
+        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[rk-1]++;
+      });
+      (r.ex||[]).forEach(g=>{
+        if(!g) return; const rw=reward(clv,5), o=get(g);
+        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[4]++;
+      });
+    });
+  });
+  return Object.values(m).sort((a,b)=>b.tk-a.tk||b.bp-a.bp);
+}
+
+/* ---------- 画面 ---------- */
+const TABS=['plan','sum','castle','data'];
+let tab='plan';
+function render(){
+  document.getElementById('ttl').textContent=T('title');
+  document.documentElement.lang=S.lang==='zh'?'zh-Hant':S.lang==='ko'?'ko':'ja';
+  document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
+  const nav=document.getElementById('nav'); nav.innerHTML='';
+  TABS.forEach(t=>{const b=document.createElement('button');b.textContent=T(t);
+    b.className=t===tab?'on':'';b.onclick=()=>{tab=t;render();window.scrollTo(0,0);};nav.appendChild(b);});
+  TABS.forEach(t=>{const el=document.getElementById('pane-'+t);el.style.display=t===tab?'':'none';el.innerHTML='';});
+  ({plan:renderPlan,sum:renderSum,castle:renderCastle,data:renderData})[tab]();
+}
+function el(h){const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;}
+
+/* --- 予定 --- */
+function curBattle(){return S.battles.find(b=>b.id===S.cur)||null;}
+function renderPlan(){
+  const P=document.getElementById('pane-plan');
+  const head=el('<div class="card"></div>');
+  const r1=el('<div class="row"></div>');
+  const sel=document.createElement('select');
+  if(!S.battles.length) sel.appendChild(new Option(T('noBattle'),''));
+  S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(b=>
+    sel.appendChild(new Option((b.date||'----')+'（'+b.rows.length+'）',b.id)));
+  sel.value=S.cur||''; sel.onchange=()=>{S.cur=sel.value;save();render();};
+  r1.appendChild(sel);
+  const nb=el('<button class="b p">＋ '+T('newBattle')+'</button>');
+  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[]};
+    S.battles.push(b);S.cur=b.id;save();render();};
+  r1.appendChild(nb); head.appendChild(r1); P.appendChild(head);
+
+  const B=curBattle(); if(!B){P.appendChild(el('<div class="card muted">'+T('noBattle')+'</div>'));return;}
+
+  const c2=el('<div class="card"></div>');
+  const rd=el('<div class="row"></div>');
+  const di=document.createElement('input'); di.type='date'; di.value=B.date||'';
+  di.onchange=()=>{B.date=di.value;save();render();};
+  rd.appendChild(el('<span class="muted">'+T('date')+'</span>')); rd.appendChild(di);
+  const dl=el('<button class="b d">'+T('del')+'</button>');
+  dl.onclick=()=>{if(confirm(T('confirmDel'))){S.battles=S.battles.filter(x=>x.id!==B.id);S.cur=null;save();render();}};
+  rd.appendChild(dl);
+  const pg=el('<button class="b g">'+T('png')+'</button>'); pg.onclick=()=>exportPNG(B); rd.appendChild(pg);
+  c2.appendChild(rd);
+
+  const ra=el('<div class="row" style="margin-top:8px"></div>');
+  const ps=document.createElement('select');
+  SEED.provs.forEach((p,i)=>ps.appendChild(new Option(pname(i),i)));
+  const cs=document.createElement('select');
+  const fill=()=>{cs.innerHTML='';(BYPROV[+ps.value]||[]).forEach(c=>cs.appendChild(new Option(cname(c.j)+'（Lv'+c.lv+'）',c.j)));};
+  ps.onchange=fill; fill();
+  const ab=el('<button class="b p">'+T('addCastle')+'</button>');
+  ab.onclick=()=>{if(!cs.value)return; B.rows.push({c:cs.value,occ:'',a:{},ex:[]});save();render();};
+  ra.appendChild(ps);ra.appendChild(cs);ra.appendChild(ab); c2.appendChild(ra);
+  P.appendChild(c2);
+
+  B.rows.forEach((r,idx)=>P.appendChild(rowCard(B,r,idx)));
+}
+function rowCard(B,r,idx){
+  const c=CITY[r.c]||{lv:1};
+  const card=el('<div class="card"></div>');
+  const h=el('<div class="row" style="justify-content:space-between"></div>');
+  h.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b><div class="muted">'+cname3(r.c)+'</div></div>'));
+  const x=el('<button class="b d">✕</button>');
+  x.onclick=()=>{B.rows.splice(idx,1);save();render();};
+  h.appendChild(x); card.appendChild(h);
+
+  if(!complete(r.c)) card.appendChild(el('<div class="warnbox">⚠ '+T('incomplete')+'</div>'));
+
+  const oc=el('<div class="slot"></div>');
+  oc.appendChild(el('<div class="lab"><b>'+T('occupier')+'</b></div>'));
+  oc.appendChild(guildSelect(r.occ,v=>{r.occ=v;save();render();}));
+  card.appendChild(oc);
+
+  slots(r.c).forEach(sl=>{
+    const s=el('<div class="slot"></div>');
+    const where = sl.g ? ('<span class="gate">'+sl.g+'</span>'+(sl.st?' ★':'')) : '<span class="closed">'+T('closed')+'</span>';
+    s.appendChild(el('<div class="lab"><b>Lv'+sl.lv+'・'+(5-sl.lv)+'位</b>'+facn(sl.ty)+' '+where+'</div>'));
+    s.appendChild(guildSelect((r.a||{})[sl.lv],v=>{r.a=r.a||{};r.a[sl.lv]=v;save();render();}));
+    card.appendChild(s);
+  });
+
+  const ex=el('<div class="slot" style="align-items:flex-start"></div>');
+  const exl=el('<div class="lab"><b>'+T('noboss')+'</b>'+T('place5')+'</div>');
+  ex.appendChild(exl);
+  const exw=el('<div style="flex:1"></div>');
+  (r.ex||[]).forEach((g,i)=>{
+    const p=el('<span class="pill"><i style="background:'+gcolor(g)+'"></i>'+g+'<button>✕</button></span>');
+    p.querySelector('button').onclick=()=>{r.ex.splice(i,1);save();render();};
+    exw.appendChild(p);
+  });
+  const add=guildSelect('',v=>{if(!v)return;r.ex=r.ex||[];if(!r.ex.includes(v))r.ex.push(v);save();render();});
+  exw.appendChild(add); ex.appendChild(exw); card.appendChild(ex);
+
+  // この城の報酬プレビュー
+  const rows=[];
+  slots(r.c).forEach(sl=>{const g=(r.a||{})[sl.lv];if(!g)return;const rk=5-sl.lv,w=reward(c.lv,rk);
+    rows.push([rk+'位',g,w]);});
+  (r.ex||[]).forEach(g=>{const w=reward(c.lv,5);rows.push([T('place5'),g,w]);});
+  if(rows.length){
+    let t='<table><tr><th>'+T('rank')+'</th><th>'+T('guild')+'</th><th class="num">'+T('boxp')+'</th><th class="num">'+T('box')+'</th><th class="num">'+T('ticket')+'</th></tr>';
+    rows.forEach(x=>{t+='<tr><td>'+x[0]+'</td><td>'+x[1]+'</td><td class="num">'+x[2][0]+'</td><td class="num">'+x[2][1]+'</td><td class="num">'+x[2][2]+'</td></tr>';});
+    t+='</table>';
+    card.appendChild(el('<div class="scroll" style="margin-top:8px">'+t+'</div>'));
+  }
+  return card;
+}
+
+/* --- 集計 --- */
+function renderSum(){
+  const P=document.getElementById('pane-sum');
+  const t=tally();
+  if(!t.length){P.appendChild(el('<div class="card muted">'+T('noData')+'</div>'));return;}
+  let h='<div class="card"><h2>'+T('total')+'</h2><div class="scroll"><table><tr><th>'+T('guild')+
+    '</th><th class="num">'+T('boxp')+'</th><th class="num">'+T('box')+'</th><th class="num">'+T('ticket')+
+    '</th><th class="num">1/2/3/4/5+</th></tr>';
+  t.forEach(o=>{h+='<tr><td><span class="chip" style="background:'+gcolor(o.n)+'">'+o.n+'</span></td>'+
+    '<td class="num">'+o.bp+'</td><td class="num">'+o.bx+'</td><td class="num">'+o.tk+'</td>'+
+    '<td class="num small">'+o.r.join('/')+'</td></tr>';});
+  h+='</table></div></div>';
+  P.appendChild(el(h));
+
+  let b='<div class="card"><h2>'+T('breakdown')+'</h2>';
+  S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(bt=>{
+    const m={};
+    bt.rows.forEach(r=>{const clv=(CITY[r.c]||{}).lv||1;
+      slots(r.c).forEach(sl=>{const g=(r.a||{})[sl.lv];if(!g)return;const w=reward(clv,5-sl.lv);
+        m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});
+      (r.ex||[]).forEach(g=>{const w=reward(clv,5);m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});});
+    const ks=Object.keys(m).sort((x,y)=>m[y][2]-m[x][2]);
+    b+='<div class="sep"></div><div class="small"><b>'+(bt.date||'----')+'</b>（'+bt.rows.length+'）</div>';
+    if(!ks.length){b+='<div class="muted small">'+T('noData')+'</div>';}
+    else{b+='<div class="scroll"><table>';
+      ks.forEach(k=>{b+='<tr><td>'+k+'</td><td class="num">'+m[k][0]+'</td><td class="num">'+m[k][1]+'</td><td class="num">'+m[k][2]+'</td></tr>';});
+      b+='</table></div>';}
+  });
+  b+='</div>';
+  P.appendChild(el(b));
+}
+
+/* --- 城 --- */
+let cprov=0, conlyBad=false;
+function renderCastle(){
+  const P=document.getElementById('pane-castle');
+  const bad=Object.keys(S.boss).filter(j=>!complete(j));
+  const c=el('<div class="card"></div>');
+  c.appendChild(el('<div class="'+(bad.length?'warnbox':'okbox')+'">'+T('hint4')+'（'+bad.length+'）</div>'));
+  const r=el('<div class="row"></div>');
+  const ps=document.createElement('select');
+  SEED.provs.forEach((p,i)=>ps.appendChild(new Option(pname(i),i)));
+  ps.value=cprov; ps.onchange=()=>{cprov=+ps.value;render();};
+  r.appendChild(ps);
+  const tg=el('<button class="b'+(conlyBad?' p':'')+'">⚠ '+T('incomplete')+'</button>');
+  tg.onclick=()=>{conlyBad=!conlyBad;render();};
+  r.appendChild(tg); c.appendChild(r); P.appendChild(c);
+
+  let list = conlyBad ? bad.map(j=>CITY[j]).filter(Boolean) : (BYPROV[cprov]||[]);
+  list.forEach(ci=>P.appendChild(castleCard(ci.j)));
+}
+function castleCard(j){
+  const ci=CITY[j], b=S.boss[j]||(S.boss[j]={s:[],ng:4});
+  const card=el('<div class="card"></div>');
+  card.appendChild(el('<div><span class="lvb">Lv'+ci.lv+'</span> <b>'+cname(j)+'</b> <span class="muted">'+pname(ci.p)+'</span><div class="muted">'+cname3(j)+'</div></div>'));
+  if(!complete(j)) card.appendChild(el('<div class="warnbox">⚠ '+b.s.length+'/4</div>'));
+  [4,3,2,1].forEach(lv=>{
+    const sl=b.s.find(x=>x.lv===lv);
+    const s=el('<div class="slot"></div>');
+    s.appendChild(el('<div class="lab"><b>Lv'+lv+'・'+(5-lv)+'位</b></div>'));
+    const ts=document.createElement('select');
+    ts.appendChild(new Option('—',''));
+    FAC.forEach((f,i)=>ts.appendChild(new Option(f[S.lang]+'／'+SPN[i][S.lang],i)));
+    ts.value=sl?String(sl.ty):'';
+    const gi=document.createElement('input'); gi.type='number'; gi.min=0; gi.max=19; gi.style.width='70px';
+    gi.placeholder=T('closed'); gi.value=sl&&sl.g?sl.g:'';
+    const st=document.createElement('input'); st.type='checkbox'; st.checked=!!(sl&&sl.st);
+    const stl=el('<label class="small" style="display:flex;align-items:center;gap:3px">★</label>');
+    stl.prepend(st);
+    const apply=()=>{
+      b.s=b.s.filter(x=>x.lv!==lv);
+      if(ts.value!==''){b.s.push({ty:+ts.value,lv:lv,g:+(gi.value||0),st:st.checked?1:0});}
+      save();render();
+    };
+    ts.onchange=apply; gi.onchange=apply; st.onchange=apply;
+    s.appendChild(ts); s.appendChild(gi); s.appendChild(stl);
+    card.appendChild(s);
+  });
+  return card;
+}
+
+/* --- データ --- */
+function renderData(){
+  const P=document.getElementById('pane-data');
+
+  // 同期
+  const sc=el('<div class="card"><h2>'+T('sync')+'</h2></div>');
+  const sr=el('<div class="row"></div>');
+  const pl=el('<button class="b g">⬇ '+T('pull')+'</button>'); pl.onclick=()=>doPull(true);
+  const ph=el('<button class="b g">⬆ '+T('push')+'</button>'); ph.onclick=()=>doPush(true);
+  sr.appendChild(pl);sr.appendChild(ph);sc.appendChild(sr);
+  sc.appendChild(el('<div class="muted" id="syncst" style="margin-top:6px"></div>'));
+  P.appendChild(sc);
+
+  // 入出力
+  const ic=el('<div class="card"><h2>'+T('imp')+' / '+T('exp')+'</h2></div>');
+  const ir=el('<div class="row"></div>');
+  const mk=(label,fn)=>{const w=el('<label class="b" style="display:inline-block">'+label+'</label>');
+    const f=document.createElement('input');f.type='file';f.accept='.json';f.style.display='none';
+    f.onchange=e=>{const fl=e.target.files[0];if(!fl)return;const rd=new FileReader();
+      rd.onload=()=>{try{fn(JSON.parse(rd.result));save();render();toast(T('saved'));}
+      catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
+    w.appendChild(f); return w;};
+  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);}));
+  ir.appendChild(mk(T('impGM'),importGateMap));
+  ir.appendChild(mk(T('impCP'),importCastlePlan));
+  const ex=el('<button class="b p">'+T('exp')+'</button>');
+  ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='reward-ledger-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.json';a.click();};
+  ir.appendChild(ex); ic.appendChild(ir); P.appendChild(ic);
+
+  // ギルド名簿
+  const gc=el('<div class="card"><h2>'+T('guilds')+'（'+S.guilds.length+'）</h2></div>');
+  const gw=el('<div></div>');
+  S.guilds.slice().sort((a,b)=>a.n.localeCompare(b.n)).forEach(g=>{
+    const p=el('<span class="pill"><i style="background:'+g.c+'"></i>'+g.n+'<button>✕</button></span>');
+    p.querySelector('i').onclick=()=>{const c=prompt(T('color'),g.c);if(c){g.c=c;save();render();}};
+    p.querySelector('button').onclick=()=>{if(confirm(g.n+'\n'+T('confirmDel'))){
+      S.guilds=S.guilds.filter(x=>x!==g);save();render();}};
+    gw.appendChild(p);
+  });
+  gc.appendChild(gw);
+  const ga=el('<button class="b" style="margin-top:6px">＋ '+T('add')+'</button>');
+  ga.onclick=()=>{const n=prompt(T('guildName'));if(n&&n.trim()){addGuild(n.trim());save();render();}};
+  gc.appendChild(ga); P.appendChild(gc);
+
+  // 報酬表
+  const rc=el('<div class="card"><h2>'+T('rewards')+'</h2></div>');
+  let h='<div class="scroll"><table><tr><th>'+T('castleLv')+'</th><th>'+T('rank')+'</th><th>'+T('boxp')+
+    '</th><th>'+T('box')+'</th><th>'+T('ticket')+'</th></tr>';
+  for(let lv=1;lv<=10;lv++){
+    S.rewards[lv].forEach((w,i)=>{
+      h+='<tr><td>'+(i===0?'Lv'+lv:'')+'</td><td>'+(i<4?(i+1)+'':'5+')+'</td>';
+      [0,1,2].forEach(k=>{h+='<td><input data-lv="'+lv+'" data-i="'+i+'" data-k="'+k+'" type="number" style="width:64px" value="'+w[k]+'"></td>';});
+      h+='</tr>';
+    });
+  }
+  h+='</table></div>';
+  const tb=el(h); rc.appendChild(tb);
+  tb.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{
+    S.rewards[+inp.dataset.lv][+inp.dataset.i][+inp.dataset.k]=+inp.value||0;save();});
+  P.appendChild(rc);
+
+  // 全消去
+  const dc=el('<div class="card"></div>');
+  const db=el('<button class="b d">'+T('resetAll')+'</button>');
+  db.onclick=()=>{if(confirm(T('resetAll')+'?')){localStorage.removeItem(KEY);location.reload();}};
+  dc.appendChild(db); P.appendChild(dc);
+}
+
+/* ---------- 取り込み ---------- */
+const FIX={'甘嚙み亭':'甘噛み亭','北葵向暖':'北葵向暖ゞ','彼岸花':'彼岸花開'};
+const DROP=new Set(['敵人']);
+function normGuild(n){n=(n||'').trim();n=FIX[n]||n;return DROP.has(n)?'':n;}
+const T2J={};SEED.cities.forEach(c=>T2J[c.t]=c.j);
+function importGateMap(o){
+  const gm=o.gm||o;
+  Object.keys(gm).forEach(t=>{
+    const j=T2J[t]||(CITY[t]?t:null); if(!j)return;
+    const gates=(gm[t].gates)||[];
+    const s=[];
+    gates.forEach(g=>{if(g.sp)s.push({ty:g.sp.ty,lv:g.sp.lv,g:g.n,st:g.star?1:0});});
+    if(s.length){S.boss[j]={s:s,ng:gates.length};}
+    gates.forEach(g=>{const n=normGuild(g.fg);if(n)addGuild(n);});
+  });
+  (o.guilds||[]).forEach(g=>{const n=normGuild(g.n||g.name||g);if(n)addGuild(n,g.c||g.color);});
+  autofill();
+}
+function importCastlePlan(o){
+  const gc=o.gcol||{};
+  Object.keys(gc).forEach(n=>{const x=normGuild(n);if(x)addGuild(x,gc[n]);});
+  Object.keys(o.assign||{}).forEach(c=>{const x=normGuild(o.assign[c]);if(x)addGuild(x);});
+}
+function autofill(){ // 3体わかっていれば4体目を推定
+  Object.keys(S.boss).forEach(j=>{
+    const b=S.boss[j],s=b.s||[];
+    if(s.length!==3)return;
+    const ty=s.map(x=>x.ty),lv=s.map(x=>x.lv);
+    if(new Set(ty).size!==3||new Set(lv).size!==3)return;
+    const mty=[0,1,2,3].find(x=>!ty.includes(x)), mlv=[1,2,3,4].find(x=>!lv.includes(x));
+    s.push({ty:mty,lv:mlv,g:0,st:0,auto:1});
+  });
+}
+
+/* ---------- 同期（Functions経由） ---------- */
+let pt=null;
+function schedulePush(){clearTimeout(pt);pt=setTimeout(()=>doPush(false),1500);}
+function st(m){const e=document.getElementById('syncst');if(e)e.textContent=m;}
+async function doPull(loud){
+  try{
+    const r=await fetch('/api/sync',{cache:'no-store'});
+    if(!r.ok)throw new Error(r.status);
+    const o=await r.json();
+    if(o&&o.u&&o.u>(S.u||0)){Object.assign(S,o);try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+      if(loud)toast('⬇ OK');render();}
+    else if(loud)toast('⬇ —');
+    st('⬇ '+new Date().toLocaleTimeString());
+  }catch(e){st('⬇ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
+}
+async function doPush(loud){
+  try{
+    const r=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+    if(!r.ok)throw new Error(r.status);
+    st('⬆ '+new Date().toLocaleTimeString()); if(loud)toast('⬆ OK');
+  }catch(e){st('⬆ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
+}
+
+/* ---------- PNG出力（入場予定表） ---------- */
+function exportPNG(B){
+  const rows=B.rows; if(!rows.length){alert(T('noData'));return;}
+  const dpr=2, W=1180, RH=64, HH=96, PAD=10;
+  const cv=document.getElementById('cv'); const H=HH+RH*rows.length+PAD*2;
+  cv.width=W*dpr; cv.height=H*dpr; const x=cv.getContext('2d'); x.scale(dpr,dpr);
+  x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  const F=(s,w)=>{x.font=(w||'')+' '+s+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';};
+  const box=(a,b,c,d,fill,stroke)=>{if(fill){x.fillStyle=fill;x.fillRect(a,b,c,d);} x.strokeStyle=stroke||'#999';x.lineWidth=1;x.strokeRect(a,b,c,d);};
+  const ctr=(t,a,b,c,d,col,sz,w)=>{F(sz||13,w);x.fillStyle=col||'#222';x.textAlign='center';x.textBaseline='middle';x.fillText(t,a+c/2,b+d/2,c-8);};
+  const C=[PAD,PAD+150,PAD+150+52,PAD+150+52+300,PAD+150+52+300+230];
+  const CW=[150,52,300,230,W-2*PAD-(150+52+300+230)];
+  // ヘッダ
+  box(C[0],PAD,CW[0],HH,'#FFFF66');
+  ctr(B.date||'',C[0],PAD,CW[0],HH,'#222',26,'bold');
+  box(C[1],PAD,CW[1],HH,'#FFFF66'); ctr('Lv',C[1],PAD,CW[1],HH,'#222',15,'bold');
+  const h3=(a,w,t)=>{box(a,PAD,w,HH,'#FFFF66');F(12,'bold');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
+    t.forEach((s,i)=>x.fillText(s,a+w/2,PAD+HH/2+(i-1)*17,w-8));};
+  h3(C[2],CW[2],['開放的城池','開放される城','개방되는 성']);
+  h3(C[3],CW[3],['佔領城池的公會','占拠ギルド','성을 점령하는 길드']);
+  h3(C[4],CW[4],['獲得入場獎勵的公會','入場報酬を受け取るギルド','입장 보상을 받는 길드']);
+  // 行
+  rows.forEach((r,i)=>{
+    const y=PAD+HH+RH*i, ci=CITY[r.c]||{lv:1};
+    box(C[0],y,CW[0],RH,'#fff'); box(C[1],y,CW[1],RH,'#fff');
+    ctr(String(ci.lv),C[1],y,CW[1],RH,'#222',15,'bold');
+    box(C[2],y,CW[2],RH,'#fff');
+    F(14,'');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
+    x.fillText('《'+ci.j+'｜'+ci.t+'｜'+ci.k+'》',C[2]+CW[2]/2,y+RH/2,CW[2]-10);
+    box(C[3],y,CW[3],RH,r.occ?gcolor(r.occ)+'55':'#fff');
+    ctr(r.occ||'',C[3],y,CW[3],RH,'#222',14,'');
+    const sl=slots(r.c), n=Math.max(sl.length,1), cw=CW[4]/n;
+    sl.forEach((s,k)=>{
+      const a=C[4]+cw*k, g=(r.a||{})[s.lv]||'';
+      box(a,y,cw*0.28,RH,'#F3EDE4'); ctr(s.g?String(s.g):'—',a,y,cw*0.28,RH,'#222',13,'bold');
+      box(a+cw*0.28,y,cw*0.72,RH,g?gcolor(g)+'55':'#fff');
+      ctr(g,a+cw*0.28,y,cw*0.72,RH,'#222',13,'');
+    });
+  });
+  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='entry-'+(B.date||'plan')+'.png';a.click();});
+}
+
+/* ---------- 起動 ---------- */
+document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.l;save();render();});
+load(); render(); doPull(false);
+</script>
+</body>
+</html>
