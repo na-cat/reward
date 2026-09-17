@@ -824,27 +824,21 @@ function drawCastleIcon(x,cx,cy){
   const teeth=4, tw=w/teeth;
   for(let i=0;i<teeth;i+=2){ x.fillRect(cx-w/2+i*tw, top-7, tw, 7); x.strokeRect(cx-w/2+i*tw, top-7, tw, 7); }
   x.fillStyle='#fff'; x.fillRect(cx-3, top+h*0.4, 6, h*0.5);
-  // 小さな旗
   x.strokeStyle='#8C9A7A'; x.lineWidth=1.5; x.beginPath(); x.moveTo(cx,top-7); x.lineTo(cx,top-16); x.stroke();
   x.fillStyle='#E8A0B4'; x.beginPath(); x.moveTo(cx,top-16); x.lineTo(cx+9,top-13); x.lineTo(cx,top-10); x.closePath(); x.fill();
 }
-// 参照画像（ゲーム内画面）の「菱形マスのかたまり＋上に浮くバッジ」の構成に寄せた1門ぶんの描画
-function drawGateTile(x,px,py,color,badgeText,label,labelColor){
-  // 菱形タイルを5枚、十字にまとめて「マスのかたまり」に見せる
-  const s=13;
+// 矩形どうしが重なっているか
+function rectHit(a,b){ return a.x1<b.x2 && a.x2>b.x1 && a.y1<b.y2 && a.y2>b.y1; }
+function drawGateCluster(x,px,py,color,badgeText,s){
   const diamond=(cx,cy)=>{ x.beginPath(); x.moveTo(cx,cy-s); x.lineTo(cx+s,cy); x.lineTo(cx,cy+s); x.lineTo(cx-s,cy); x.closePath(); };
   const offs=[[0,-s*1.05],[ -s*1.05,0],[0,0],[s*1.05,0],[0,s*1.05]];
   x.fillStyle=color+'33'; x.strokeStyle=color;
-  offs.forEach(([dx,dy])=>{ x.lineWidth=1.4; diamond(px+dx,py+dy); x.fill(); x.stroke(); });
-  // 上に浮くバッジ（番号／★）
-  const bx=px+s*1.3, by=py-s*1.3;
-  x.fillStyle='#fff'; x.strokeStyle=color; x.lineWidth=2.2;
-  x.beginPath(); x.arc(bx,by,13,0,Math.PI*2); x.fill(); x.stroke();
-  x.font='bold 14px system-ui'; x.fillStyle=color; x.textAlign='center'; x.textBaseline='middle';
+  offs.forEach(([dx,dy])=>{ x.lineWidth=1.2; diamond(px+dx,py+dy); x.fill(); x.stroke(); });
+  const bx=px+s*1.3, by=py-s*1.3, br=Math.max(9,s*0.95);
+  x.fillStyle='#fff'; x.strokeStyle=color; x.lineWidth=2;
+  x.beginPath(); x.arc(bx,by,br,0,Math.PI*2); x.fill(); x.stroke();
+  x.font='bold '+Math.max(10,Math.round(s*0.95))+'px system-ui'; x.fillStyle=color; x.textAlign='center'; x.textBaseline='middle';
   x.fillText(badgeText, bx, by);
-  // ギルド名（白縁取り＋色文字）
-  if(label) labelOutline(x, label, px, py+s*2.1, 17, labelColor);
-  else { x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.fillText('—', px, py+s*2.1); }
 }
 function labelOutline(x,t,px,py,size,fill){
   x.font='bold '+size+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
@@ -874,18 +868,54 @@ function exportGatePNG(battles){
     x.fillText(date||'', tx+10, ty+19);
     x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》 Lv'+ci.lv, tx+10, ty+38);
 
-    // 座標(±1.6程度まで)が確実にカード内に収まるよう、余白込みで縮尺を計算
     const cx=tx+TILE/2, cy=ty+TILE/2+16, scale=58;
-    drawCastleIcon(x,cx,cy);
 
     const sl=slots(r.c);
-    const noGate=[];
-    sl.forEach(s=>{
-      const g=(r.a||{})[s.lv]||'';
-      if(s.x===undefined || s.y===undefined){ noGate.push({s,g}); return; }
-      const px=cx+s.x*scale, py=cy+s.y*scale;
-      drawGateTile(x, px, py, FACCOL[s.ty], s.st?'★':String(s.g), g, '#2b3a67');
+    const pts=sl.filter(s=>s.x!==undefined&&s.y!==undefined)
+      .map(s=>({s,px:cx+s.x*scale,py:cy+s.y*scale,g:(r.a||{})[s.lv]||''}));
+
+    // 門どうしが近いほどマスを小さくして、菱形クラスタが重ならないようにする
+    let minD=Infinity;
+    for(let a=0;a<pts.length;a++)for(let b=a+1;b<pts.length;b++){
+      const d=Math.hypot(pts[a].px-pts[b].px, pts[a].py-pts[b].py); if(d<minD) minD=d;
+    }
+    const s=Math.max(7, Math.min(13, isFinite(minD)?minD/2.6-2:13));
+
+    drawCastleIcon(x,cx,cy);
+    const occupied=[]; // 既に置いた矩形（マス・バッジ・ラベル）
+    pts.forEach(p=>occupied.push({x1:p.px-s*2.2,x2:p.px+s*2.6,y1:p.py-s*2.6,y2:p.py+s*2.2})); // クラスタ＋バッジ概算
+    pts.push({s:{ty:-1,x:cx,y:0},px:cx,py:cy}); // 城アイコン自体も避ける対象に（ダミー、ラベルなし）
+    occupied.push({x1:cx-20,x2:cx+20,y1:cy-24,y2:cy+16});
+    pts.pop();
+
+    pts.forEach(p=>drawGateCluster(x,p.px,p.py,FACCOL[p.s.ty],p.s.st?'★':String(p.s.g),s));
+
+    // ラベル（ギルド名）を、既に置いたものと重ならない位置を探して配置
+    const fontSize=Math.max(12,Math.min(17,s+3));
+    pts.forEach(p=>{
+      const text=p.g || '—';
+      x.font='bold '+fontSize+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+      const tw=x.measureText(text).width, th=fontSize+4;
+      const cands=[
+        [0, s*2.2],[0,-s*2.2-th*0.6],[s*2.4+tw/2-s*0.5, s*0.3],[-(s*2.4+tw/2-s*0.5), s*0.3],
+        [0, s*3.4],[0,-s*3.4-th*0.6],[s*3.2+tw/2, -s*1.2],[-(s*3.2+tw/2), -s*1.2],
+        [0, s*4.6],[0,-s*4.6-th*0.6]
+      ];
+      let placed=null;
+      for(const [dx,dy] of cands){
+        const lx=p.px+dx, ly=p.py+dy;
+        const rect={x1:lx-tw/2-3,x2:lx+tw/2+3,y1:ly-th/2,y2:ly+th/2};
+        if(rect.x1<tx+4||rect.x2>tx+TILE-4||rect.y1<ty+44||rect.y2>ty+TILE-4) continue;
+        if(occupied.some(o=>rectHit(o,rect))) continue;
+        placed={lx,ly,rect}; break;
+      }
+      if(!placed){ const lx=p.px, ly=p.py+s*2.2; placed={lx,ly,rect:{x1:lx-tw/2-3,x2:lx+tw/2+3,y1:ly-th/2,y2:ly+th/2}}; }
+      occupied.push(placed.rect);
+      if(p.g) labelOutline(x, text, placed.lx, placed.ly, fontSize, '#2b3a67');
+      else { x.font=fontSize+'px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('—', placed.lx, placed.ly); }
     });
+
+    const noGate=sl.filter(s=>s.x===undefined||s.y===undefined).map(s=>({s,g:(r.a||{})[s.lv]||''}));
     if(!sl.length){
       x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle';
       x.fillText(S.lang==='zh'?'（尚未登記英靈資料）':S.lang==='ko'?'（영령 데이터 미등록）':'（英霊データ未登録）', cx, cy+56);
