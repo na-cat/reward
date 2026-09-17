@@ -182,8 +182,23 @@ function load(){
   if(!S.boss||!Object.keys(S.boss).length) S.boss=JSON.parse(JSON.stringify(SEED.boss));
   if(!S.guilds) S.guilds=[];
   if(!S.battles) S.battles=[];
+  repairCoords();
   const first=S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   if(first) expanded.add(first.id);
+}
+// 城タブでの編集により座標(x,y)が失われた既存データを、正典データ(SEED)と突き合わせて復元する
+function repairCoords(){
+  let fixed=0;
+  Object.keys(SEED.boss).forEach(j=>{
+    const cur=S.boss[j]; if(!cur||!cur.s) return;
+    const seedSlots=SEED.boss[j].s||[];
+    cur.s.forEach(sl=>{
+      if(sl.x!==undefined && sl.y!==undefined) return; // 既に座標あり
+      const seedSl=seedSlots.find(x=>x.lv===sl.lv && x.ty===sl.ty && x.x!==undefined);
+      if(seedSl){ sl.x=seedSl.x; sl.y=seedSl.y; fixed++; }
+    });
+  });
+  if(fixed) save();
 }
 function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}schedulePush();}
 
@@ -340,13 +355,17 @@ function renderPlan(){
   }
   head.appendChild(r1);
   const r2=el('<div class="row" style="margin-top:6px"></div>');
-  const combo=el('<button class="b g">'+T('png')+'（'+(S.lang==='zh'?'已勾選':S.lang==='ko'?'선택됨':'選択分')+'）</button>');
-  combo.onclick=()=>{
-    const list=S.battles.filter(b=>b.chk);
-    if(!list.length){alert(S.lang==='zh'?'請先勾選攻城':S.lang==='ko'?'먼저 성전을 선택하세요':'先に城戦にチェックを入れてください');return;}
-    exportPNG(list); exportGatePNG(list);
-  };
-  r2.appendChild(combo); head.appendChild(r2);
+  const tagS=(S.lang==='zh'?'已勾選':S.lang==='ko'?'선택됨':'選択分');
+  const tblLabel=(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表');
+  const gateLabel=(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図');
+  const needChk=()=>{const list=S.battles.filter(b=>b.chk);
+    if(!list.length){alert(S.lang==='zh'?'請先勾選攻城':S.lang==='ko'?'먼저 성전을 선택하세요':'先に城戦にチェックを入れてください');return null;}
+    return list;};
+  const combo1=el('<button class="b g">'+tblLabel+'（'+tagS+'）</button>');
+  combo1.onclick=()=>{const list=needChk(); if(list) exportPNG(list);};
+  const combo2=el('<button class="b g">'+gateLabel+'（'+tagS+'）</button>');
+  combo2.onclick=()=>{const list=needChk(); if(list) exportGatePNG(list);};
+  r2.appendChild(combo1); r2.appendChild(combo2); head.appendChild(r2);
   P.appendChild(head);
 
   if(!S.battles.length){P.appendChild(el('<div class="card muted">'+T('noBattle')+'</div>'));return;}
@@ -387,7 +406,8 @@ function battleCard(B){
   const dl=el('<button class="b d">'+T('del')+'</button>');
   dl.onclick=()=>{if(confirm(T('confirmDel'))){S.battles=S.battles.filter(x=>x.id!==B.id);save();render();}};
   rd.appendChild(dl);
-  const pg=el('<button class="b g">'+T('png')+'</button>'); pg.onclick=()=>{exportPNG([B]);exportGatePNG([B]);}; rd.appendChild(pg);
+  const pg1=el('<button class="b g">'+(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表')+'</button>'); pg1.onclick=()=>exportPNG([B]); rd.appendChild(pg1);
+  const pg2=el('<button class="b g">'+(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図')+'</button>'); pg2.onclick=()=>exportGatePNG([B]); rd.appendChild(pg2);
   c2.appendChild(rd);
 
   const pidx = openProv[B.id]===undefined ? 0 : openProv[B.id];
@@ -446,24 +466,29 @@ function rowCard(B,r,idx){
   const add=guildSelect('',v=>{if(!v)return;tryAssign(r,v,'',val=>{r.ex=r.ex||[];if(!r.ex.includes(val))r.ex.push(val);save();render();});});
   exw.appendChild(add); ex.appendChild(exw); card.appendChild(ex);
 
-  // 結果スクショ添付（任意・順位修正の目安用）
+  // 結果スクショ添付（任意・順位修正の目安用。自動で数値には反映されません）
   const shotRow=el('<div class="slot" style="align-items:flex-start"></div>');
-  shotRow.appendChild(el('<div class="lab"><b>'+(S.lang==='zh'?'結果截圖':S.lang==='ko'?'결과 스샷':'結果スクショ')+'</b>'+(S.lang==='zh'?'（選填）':S.lang==='ko'?'（선택）':'（任意）')+'</div>'));
+  shotRow.appendChild(el('<div class="lab"><b>'+(S.lang==='zh'?'結果截圖':S.lang==='ko'?'결과 스샷':'結果スクショ')+'</b>'+(S.lang==='zh'?'（選填・僅供參考，不會自動反映數字）':S.lang==='ko'?'（선택・참고용, 숫자에 자동 반영되지 않음）':'（任意・見比べ用の参考画像です。数字は下のプルダウンで直してください）')+'</div>'));
   const shotWrap=el('<div style="flex:1"></div>');
   if(r.shot){
     const th=el('<img src="'+r.shot+'" style="max-width:120px;border-radius:8px;border:1px solid var(--line);display:block;margin-bottom:6px;cursor:pointer">');
     th.onclick=()=>window.open(r.shot,'_blank');
     shotWrap.appendChild(th);
+    shotWrap.appendChild(el('<div class="small" style="color:var(--ok);margin-bottom:4px">✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付済み')+'</div>'));
     const rm=el('<button class="b d">✕</button>'); rm.onclick=()=>{r.shot='';save();render();};
     shotWrap.appendChild(rm);
   } else {
+    const stEl=el('<div class="small muted" style="margin-bottom:4px"></div>');
+    shotWrap.appendChild(stEl);
     const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
     fi.onchange=e=>{const f=e.target.files[0]; if(!f)return;
+      stEl.textContent=(S.lang==='zh'?'處理中…':S.lang==='ko'?'처리 중…':'処理中…');
       fileToImage(f,img=>{
         const mw=900, sc=Math.min(1,mw/img.width);
         const cv=document.createElement('canvas'); cv.width=img.width*sc; cv.height=img.height*sc;
         cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
         r.shot=cv.toDataURL('image/jpeg',0.7); save(); render();
+        toast('✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付しました'));
       });
     };
     shotWrap.appendChild(fi);
@@ -551,8 +576,13 @@ function castleCard(j){
     const stl=el('<label class="small" style="display:flex;align-items:center;gap:3px">★</label>');
     stl.prepend(st);
     const apply=()=>{
+      const oldX=sl&&sl.x, oldY=sl&&sl.y; // 元々この門に座標情報があれば引き継ぐ（消さない）
       b.s=b.s.filter(x=>x.lv!==lv);
-      if(ts.value!==''){b.s.push({ty:+ts.value,lv:lv,g:+(gi.value||0),st:st.checked?1:0});}
+      if(ts.value!==''){
+        const e={ty:+ts.value,lv:lv,g:+(gi.value||0),st:st.checked?1:0};
+        if(oldX!==undefined && oldY!==undefined){e.x=oldX;e.y=oldY;}
+        b.s.push(e);
+      }
       save();render();
     };
     ts.onchange=apply; gi.onchange=apply; st.onchange=apply;
@@ -566,8 +596,19 @@ function castleCard(j){
 function renderData(){
   const P=document.getElementById('pane-data');
 
-  // 同期
-  const sc=el('<div class="card"><h2>'+T('sync')+'</h2></div>');
+  // 門配置データ（Gate Mapから読み取り専用で取得。こちらからは書き込まない）
+  const gm=el('<div class="card"><h2>'+(S.lang==='zh'?'城池門配置資料':S.lang==='ko'?'성문 배치 데이터':'城の門配置データ')+'</h2></div>');
+  gm.appendChild(el('<div class="muted small">'+(S.lang==='zh'?'僅從Gate Map讀取（唯讀）。此工具不會寫入Gate Map的資料。':
+    S.lang==='ko'?'Gate Map에서 읽기 전용으로 가져옵니다. 이 도구는 Gate Map 데이터에 쓰지 않습니다.':
+    'Gate Mapから読み取り専用で取得します。この報酬台帳からGate Map側のデータを書き換えることはありません。')+'</div>'));
+  const gmb=el('<button class="b g" style="margin-top:6px">⬇ '+(S.lang==='zh'?'從Gate Map取得':S.lang==='ko'?'Gate Map에서 가져오기':'Gate Mapから取得')+'</button>');
+  gmb.onclick=()=>pullGateMapLive(true);
+  gm.appendChild(gmb);
+  gm.appendChild(el('<div class="muted" id="gmst" style="margin-top:6px"></div>'));
+  P.appendChild(gm);
+
+  // 台帳データ（予定・ギルド・報酬表など、この報酬台帳専用のデータ）
+  const sc=el('<div class="card"><h2>'+T('sync')+'（'+(S.lang==='zh'?'獎勵台帳專用':S.lang==='ko'?'보상 장부 전용':'この台帳専用')+'）</h2></div>');
   const sr=el('<div class="row"></div>');
   const pl=el('<button class="b g">⬇ '+T('pull')+'</button>'); pl.onclick=()=>doPull(true);
   const ph=el('<button class="b g">⬆ '+T('push')+'</button>'); ph.onclick=()=>doPush(true);
@@ -689,6 +730,18 @@ async function doPush(loud){
     st('⬆ '+new Date().toLocaleTimeString()); if(loud)toast('⬆ OK');
   }catch(e){st('⬆ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
 }
+function gmst(m){const e=document.getElementById('gmst');if(e)e.textContent=m;}
+// Gate Mapのデータを読み取り専用で取り込む（既存のimportGateMapロジックを再利用。書き込みは一切しない）
+async function pullGateMapLive(loud){
+  try{
+    const r=await fetch('/api/gatemap',{cache:'no-store'});
+    if(!r.ok)throw new Error(r.status);
+    const o=await r.json();
+    if(o && o.gm){ importGateMap(o); save(); render(); if(loud) toast('⬇ OK'); }
+    else if(loud) toast('⬇ —');
+    gmst('⬇ '+new Date().toLocaleTimeString());
+  }catch(e){ gmst('⬇ ✕ '+e.message); if(loud) alert('gatemap sync error: '+e.message); }
+}
 
 /* ---------- PNG出力（入場予定表） ---------- */
 // battles: 城戦の配列（1件でも複数でもOK）。複数日をまとめる場合は日付ごとに区切り帯を挟む
@@ -750,6 +803,14 @@ function exportPNG(battles){
 
 /* ---------- PNG出力（門配置＋担当ギルド図） ---------- */
 const FACCOL=['#E8A0B4','#7FB07A','#A9C6F0','#E0A33A']; // 工場/書院/医療院/武器庫
+function drawCastleIcon(x,cx,cy){
+  const w=30,h=22,top=cy-h/2;
+  x.fillStyle='#A98F73'; x.strokeStyle='#fff'; x.lineWidth=1.5;
+  x.beginPath(); x.rect(cx-w/2,top,w,h); x.fill(); x.stroke();
+  const teeth=4, tw=w/teeth;
+  for(let i=0;i<teeth;i+=2){ x.fillRect(cx-w/2+i*tw, top-6, tw, 6); x.strokeRect(cx-w/2+i*tw, top-6, tw, 6); }
+  x.fillStyle='#fff'; x.fillRect(cx-3, top+h*0.45, 6, h*0.4);
+}
 function labelOutline(x,t,px,py,size,fill){
   x.font='bold '+size+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
   x.textAlign='center';x.textBaseline='middle';
@@ -779,8 +840,7 @@ function exportGatePNG(battles){
     x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》 Lv'+ci.lv, tx+8, ty+32);
 
     const cx=tx+TILE/2, cy=ty+TILE/2+20, scale=72;
-    x.fillStyle='#C9BFAE'; x.beginPath();
-    x.moveTo(cx,cy-16); x.lineTo(cx+16,cy); x.lineTo(cx,cy+16); x.lineTo(cx-16,cy); x.closePath(); x.fill();
+    drawCastleIcon(x,cx,cy);
 
     const sl=slots(r.c);
     const noGate=[];
@@ -812,16 +872,18 @@ function exportGatePNG(battles){
 
 /* ---------- 起動 ---------- */
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.l;save();render();});
-load(); render(); doPull(false).then(()=>{
+load(); render();
+pullGateMapLive(false);
+doPull(false).then(()=>{
   // 同期データが本当に空っぽの初回だけ、デフォルトのギルドを入れておく
   if(!S.guilds.length){
     DEFAULT_GUILDS.forEach(n=>addGuild(n));
     save(); render();
   }
 });
-// 自分が今編集していない間だけ、20秒ごとに自動で最新を受信する
-setInterval(()=>{if(!dirty&&!document.hidden)doPull(false);},20000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!dirty)doPull(false);});
+// 自分が今編集していない間だけ、20秒ごとに自動で最新を受信する（台帳データ＋門配置データの両方）
+setInterval(()=>{if(!dirty&&!document.hidden){doPull(false);pullGateMapLive(false);}},20000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!dirty){doPull(false);pullGateMapLive(false);}});
 </script>
 </body>
 </html>
