@@ -234,6 +234,11 @@ function slots(j){
   const b=S.boss[j]; if(!b) return [];
   return (b.s||[]).slice().sort((a,b)=>b.lv-a.lv);
 }
+// 常にLv4→Lv1の4枠で返す（未登録の枠はnull）。画像出力で列幅を揃えるために使う
+function slots4(j){
+  const s=slots(j);
+  return [4,3,2,1].map(lv=>s.find(x=>x.lv===lv)||null);
+}
 function complete(j){
   const s=(S.boss[j]||{}).s||[];
   if(s.length!==4) return false;
@@ -678,14 +683,17 @@ const FIX={'甘嚙み亭':'甘噛み亭','北葵向暖':'北葵向暖ゞ','彼�
 const DROP=new Set(['敵人']);
 function normGuild(n){n=(n||'').trim();n=FIX[n]||n;return DROP.has(n)?'':n;}
 const T2J={};SEED.cities.forEach(c=>T2J[c.t]=c.j);
+const GATEHINT={}; // 城 -> 英霊未記録の★門（位置あり）。4体目の自動推測をその門に結びつけるため
 function importGateMap(o){
   const gm=o.gm||o;
   Object.keys(gm).forEach(t=>{
     const j=T2J[t]||(CITY[t]?t:null); if(!j)return;
     const gates=(gm[t].gates)||[];
     const s=[];
-    gates.forEach(g=>{if(g.sp)s.push({ty:g.sp.ty,lv:g.sp.lv,g:g.n,st:g.star?1:0});});
+    gates.forEach(g=>{if(g.sp)s.push({ty:g.sp.ty,lv:g.sp.lv,g:g.n,st:g.star?1:0,x:g.x,y:g.y});});
     if(s.length){S.boss[j]={s:s,ng:gates.length};}
+    const blankStar=gates.find(g=>g.star && !g.sp);
+    if(blankStar) GATEHINT[j]={g:blankStar.n,x:blankStar.x,y:blankStar.y};
     gates.forEach(g=>{const n=normGuild(g.fg);if(n)addGuild(n);});
   });
   (o.guilds||[]).forEach(g=>{const n=normGuild(g.n||g.name||g);if(n)addGuild(n,g.c||g.color);});
@@ -696,14 +704,17 @@ function importCastlePlan(o){
   Object.keys(gc).forEach(n=>{const x=normGuild(n);if(x)addGuild(x,gc[n]);});
   Object.keys(o.assign||{}).forEach(c=>{const x=normGuild(o.assign[c]);if(x)addGuild(x);});
 }
-function autofill(){ // 3体わかっていれば4体目を推定
+function autofill(){ // 3体わかっていれば4体目を推定。位置未記録の★門があれば、そこが4体目と分かるので座標も付ける
   Object.keys(S.boss).forEach(j=>{
     const b=S.boss[j],s=b.s||[];
     if(s.length!==3)return;
     const ty=s.map(x=>x.ty),lv=s.map(x=>x.lv);
     if(new Set(ty).size!==3||new Set(lv).size!==3)return;
     const mty=[0,1,2,3].find(x=>!ty.includes(x)), mlv=[1,2,3,4].find(x=>!lv.includes(x));
-    s.push({ty:mty,lv:mlv,g:0,st:0,auto:1});
+    const hint=GATEHINT[j];
+    const e={ty:mty,lv:mlv,g:0,st:0,auto:1};
+    if(hint){ e.g=hint.g; e.st=1; e.x=hint.x; e.y=hint.y; }
+    s.push(e);
   });
 }
 
@@ -750,7 +761,7 @@ function exportPNG(battles){
   battles.forEach(B=>B.rows.forEach(r=>flat.push({date:B.date,r})));
   if(!flat.length){alert(T('noData'));return;}
   const multiDate = new Set(battles.map(b=>b.date)).size>1;
-  const dpr=2, W=1320, RH=84, HH=118, GH=40, PAD=10, TT=34;
+  const dpr=2, W=1440, RH=104, HH=130, GH=46, PAD=12, TT=40;
   const groupCount = multiDate ? battles.length : 0;
   const H = TT + HH + RH*flat.length + GH*groupCount + PAD*2;
   const cv=document.getElementById('cv'); cv.width=W*dpr; cv.height=H*dpr;
@@ -762,16 +773,16 @@ function exportPNG(battles){
 
   const dates=battles.map(b=>b.date).filter(Boolean).sort();
   const titleTxt = dates.length ? (dates[0]===dates[dates.length-1] ? dates[0] : dates[0]+' 〜 '+dates[dates.length-1]) : '';
-  x.font='bold 24px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+  x.font='bold 28px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
   x.fillStyle='#222'; x.textAlign='left'; x.textBaseline='top';
   x.fillText(titleTxt, PAD, PAD);
 
   const top=PAD+TT;
-  const C=[PAD,PAD+70,PAD+70+340,PAD+70+340+260];
-  const CW=[70,340,260,W-2*PAD-(70+340+260)];
-  box(C[0],top,CW[0],HH,'#FFFF66'); ctr('Lv',C[0],top,CW[0],HH,'#222',18,'bold');
-  const h3=(a,w,t)=>{box(a,top,w,HH,'#FFFF66');F(14,'bold');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
-    t.forEach((s,i)=>x.fillText(s,a+w/2,top+HH/2+(i-1)*19,w-8));};
+  const C=[PAD,PAD+76,PAD+76+360,PAD+76+360+280];
+  const CW=[76,360,280,W-2*PAD-(76+360+280)];
+  box(C[0],top,CW[0],HH,'#FFFF66'); ctr('Lv',C[0],top,CW[0],HH,'#222',20,'bold');
+  const h3=(a,w,t)=>{box(a,top,w,HH,'#FFFF66');F(15,'bold');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
+    t.forEach((s,i)=>x.fillText(s,a+w/2,top+HH/2+(i-1)*20,w-8));};
   h3(C[1],CW[1],['開放的城池','開放される城','개방되는 성']);
   h3(C[2],CW[2],['佔領城池的公會','占拠ギルド','성을 점령하는 길드']);
   h3(C[3],CW[3],['獲得入場獎勵的公會','入場報酬を受け取るギルド','입장 보상을 받는 길드']);
@@ -780,20 +791,23 @@ function exportPNG(battles){
   flat.forEach(({date,r})=>{
     if(multiDate && date!==lastDate){
       box(PAD,y,W-2*PAD,GH,'#E8A0B4');
-      ctr(date||'----',PAD,y,W-2*PAD,GH,'#fff',18,'bold');
+      ctr(date||'----',PAD,y,W-2*PAD,GH,'#fff',20,'bold');
       y+=GH; lastDate=date;
     }
     const ci=CITY[r.c]||{lv:1,j:r.c,t:r.c,k:r.c};
-    box(C[0],y,CW[0],RH,'#fff'); ctr(String(ci.lv),C[0],y,CW[0],RH,'#222',18,'bold');
+    box(C[0],y,CW[0],RH,'#fff'); ctr(String(ci.lv),C[0],y,CW[0],RH,'#222',22,'bold');
     box(C[1],y,CW[1],RH,'#fff');
-    F(18,'');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
+    F(20,'');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
     x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RH/2,CW[1]-10);
-    box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',17,'');
-    const sl=slots(r.c), n=Math.max(sl.length,1), cw=CW[3]/n;
-    sl.forEach((s,k)=>{
-      const a=C[3]+cw*k, g=(r.a||{})[s.lv]||'';
-      box(a,y,cw*0.3,RH,'#F3EDE4'); ctr(s.g?String(s.g):'—',a,y,cw*0.3,RH,'#222',16,'bold');
-      box(a+cw*0.3,y,cw*0.7,RH,'#fff'); ctr(g,a+cw*0.3,y,cw*0.7,RH,'#222',16,'');
+    box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',19,'bold');
+    // 列数はLv4〜Lv1の4列で必ず固定（登録数が少ない城でも幅がズレないように）
+    const all4=slots4(r.c), cw=CW[3]/4;
+    all4.forEach((s,k)=>{
+      const a=C[3]+cw*k;
+      if(!s){ box(a,y,cw,RH,'#fff'); ctr('未登録',a,y,cw,RH,'#C9BEAE',13,''); return; }
+      const g=(r.a||{})[s.lv]||'';
+      box(a,y,cw*0.3,RH,'#F3EDE4'); ctr(s.g?String(s.g):'—',a,y,cw*0.3,RH,'#222',18,'bold');
+      box(a+cw*0.3,y,cw*0.7,RH,'#fff'); ctr(g,a+cw*0.3,y,cw*0.7,RH,'#222',19,'bold');
     });
     y+=RH;
   });
@@ -824,13 +838,13 @@ function drawGateTile(x,px,py,color,badgeText,label,labelColor){
   offs.forEach(([dx,dy])=>{ x.lineWidth=1.4; diamond(px+dx,py+dy); x.fill(); x.stroke(); });
   // 上に浮くバッジ（番号／★）
   const bx=px+s*1.3, by=py-s*1.3;
-  x.fillStyle='#fff'; x.strokeStyle=color; x.lineWidth=2;
-  x.beginPath(); x.arc(bx,by,11,0,Math.PI*2); x.fill(); x.stroke();
-  x.font='bold 12px system-ui'; x.fillStyle=color; x.textAlign='center'; x.textBaseline='middle';
+  x.fillStyle='#fff'; x.strokeStyle=color; x.lineWidth=2.2;
+  x.beginPath(); x.arc(bx,by,13,0,Math.PI*2); x.fill(); x.stroke();
+  x.font='bold 14px system-ui'; x.fillStyle=color; x.textAlign='center'; x.textBaseline='middle';
   x.fillText(badgeText, bx, by);
   // ギルド名（白縁取り＋色文字）
-  if(label) labelOutline(x, label, px, py+s*1.9, 14, labelColor);
-  else { x.font='11px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.fillText('—', px, py+s*1.9); }
+  if(label) labelOutline(x, label, px, py+s*2.1, 17, labelColor);
+  else { x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.fillText('—', px, py+s*2.1); }
 }
 function labelOutline(x,t,px,py,size,fill){
   x.font='bold '+size+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
@@ -841,9 +855,9 @@ function labelOutline(x,t,px,py,size,fill){
 function exportGatePNG(battles){
   const flat=[]; battles.forEach(B=>B.rows.forEach(r=>flat.push({date:B.date,r})));
   if(!flat.length){alert(T('noData'));return;}
-  const dpr=2, TILE=320, GAP=14, COLS=Math.min(3,flat.length);
+  const dpr=2, TILE=360, GAP=16, COLS=Math.min(3,flat.length);
   const ROWSn=Math.ceil(flat.length/COLS);
-  const W=COLS*TILE+(COLS+1)*GAP, H=ROWSn*TILE+(ROWSn+1)*GAP+30;
+  const W=COLS*TILE+(COLS+1)*GAP, H=ROWSn*TILE+(ROWSn+1)*GAP+34;
   let cv=document.getElementById('cv2');
   if(!cv){cv=document.createElement('canvas');cv.id='cv2';cv.style.display='none';document.body.appendChild(cv);}
   cv.width=W*dpr; cv.height=H*dpr; const x=cv.getContext('2d'); x.scale(dpr,dpr);
@@ -851,36 +865,45 @@ function exportGatePNG(battles){
 
   flat.forEach(({date,r},i)=>{
     const col=i%COLS, row=Math.floor(i/COLS);
-    const tx=GAP+col*(TILE+GAP), ty=30+GAP+row*(TILE+GAP);
+    const tx=GAP+col*(TILE+GAP), ty=34+GAP+row*(TILE+GAP);
     const ci=CITY[r.c]||{lv:1,j:r.c,t:r.c,k:r.c};
     x.fillStyle='#fff'; x.strokeStyle='#E7DED2'; x.lineWidth=1;
     x.fillRect(tx,ty,TILE,TILE); x.strokeRect(tx,ty,TILE,TILE);
-    x.font='bold 13px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+    x.font='bold 15px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
     x.fillStyle='#3B332C'; x.textAlign='left'; x.textBaseline='alphabetic';
-    x.fillText(date||'', tx+8, ty+16);
-    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》 Lv'+ci.lv, tx+8, ty+32);
+    x.fillText(date||'', tx+10, ty+19);
+    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》 Lv'+ci.lv, tx+10, ty+38);
 
-    const cx=tx+TILE/2, cy=ty+TILE/2+22, scale=90;
+    // 座標(±1.6程度まで)が確実にカード内に収まるよう、余白込みで縮尺を計算
+    const cx=tx+TILE/2, cy=ty+TILE/2+16, scale=58;
     drawCastleIcon(x,cx,cy);
 
     const sl=slots(r.c);
     const noGate=[];
     sl.forEach(s=>{
       const g=(r.a||{})[s.lv]||'';
-      if(s.x===undefined || s.y===undefined){ if(g) noGate.push({s,g}); return; }
+      if(s.x===undefined || s.y===undefined){ noGate.push({s,g}); return; }
       const px=cx+s.x*scale, py=cy+s.y*scale;
       drawGateTile(x, px, py, FACCOL[s.ty], s.st?'★':String(s.g), g, '#2b3a67');
     });
+    if(!sl.length){
+      x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle';
+      x.fillText(S.lang==='zh'?'（尚未登記英靈資料）':S.lang==='ko'?'（영령 데이터 미등록）':'（英霊データ未登録）', cx, cy+56);
+    }
     if(noGate.length){
-      x.font='11px system-ui'; x.fillStyle='#8A7D6E'; x.textAlign='left';
-      let ly=ty+TILE-14*noGate.length-6;
-      noGate.forEach(({s,g})=>{ x.fillText(facn(s.ty)+' → '+g, tx+8, ly); ly+=14; });
+      x.font='13px system-ui'; x.fillStyle='#8A7D6E'; x.textAlign='left';
+      let ly=ty+TILE-16*noGate.length-8;
+      noGate.forEach(({s,g})=>{ x.fillText(facn(s.ty)+(g?' → '+g:'（'+(S.lang==='zh'?'未指定':S.lang==='ko'?'미지정':'未指定')+'）'), tx+10, ly); ly+=16; });
     }
   });
-  x.font='11px system-ui'; x.textAlign='left'; x.textBaseline='middle';
-  let lx=W-10-4*90;
-  FAC.forEach((f,i)=>{ x.fillStyle=FACCOL[i]; x.beginPath(); x.arc(lx+7,H-14,6,0,7); x.fill();
-    x.fillStyle='#3B332C'; x.fillText(f[S.lang], lx+18, H-14); lx+=90; });
+  x.font='13px system-ui'; x.textAlign='left'; x.textBaseline='middle';
+  const legW=96, perRow=Math.max(1,Math.floor((W-20)/legW));
+  FAC.forEach((f,i)=>{
+    const col=i%perRow, row=Math.floor(i/perRow);
+    const lx=10+col*legW, ly=H-16-Math.floor((FAC.length-1)/perRow-row)*18;
+    x.fillStyle=FACCOL[i]; x.beginPath(); x.arc(lx+7,ly,7,0,7); x.fill();
+    x.fillStyle='#3B332C'; x.fillText(f[S.lang], lx+19, ly);
+  });
 
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
     a.download='gate-plan.png';a.click();});
