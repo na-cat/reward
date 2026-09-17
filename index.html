@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>報酬台帳｜獎勵台帳｜보상 장부</title>
+<title>獎勵台帳｜報酬台帳｜보상 장부</title>
 <style>
 :root{
   --bg:#FBF7F2; --card:#FFFFFF; --line:#E7DED2; --ink:#3B332C; --sub:#8A7D6E;
@@ -68,7 +68,7 @@ th{color:var(--sub);font-weight:600;font-size:11px}
   <div class="hrow">
     <h1 id="ttl">報酬台帳</h1>
     <div class="langs">
-      <button data-l="ja">日</button><button data-l="zh">繁</button><button data-l="ko">한</button>
+      <button data-l="zh">繁</button><button data-l="ja">日</button><button data-l="ko">한</button>
     </div>
   </div>
   <nav id="nav"></nav>
@@ -168,7 +168,7 @@ const CITY={}, BYPROV=[];
 SEED.cities.forEach(c=>{CITY[c.j]=c; (BYPROV[c.p]=BYPROV[c.p]||[]).push(c);});
 function T(k){return (L[S.lang]&&L[S.lang][k])||L.ja[k]||k;}
 function cname(j){const c=CITY[j];if(!c)return j;return S.lang==='zh'?c.t:S.lang==='ko'?c.k:c.j;}
-function cname3(j){const c=CITY[j];if(!c)return j;return c.j+'｜'+c.t+'｜'+c.k;}
+function cname3(j){const c=CITY[j];if(!c)return j;return c.t+'｜'+c.j+'｜'+c.k;}
 function pname(i){const p=SEED.provs[i];return S.lang==='zh'?p[0]:S.lang==='ko'?p[2]:p[1];}
 function facn(t){return FAC[t][S.lang];}
 function spn(t){return SPN[t][S.lang];}
@@ -724,7 +724,7 @@ function exportPNG(battles){
     box(C[0],y,CW[0],RH,'#fff'); ctr(String(ci.lv),C[0],y,CW[0],RH,'#222',18,'bold');
     box(C[1],y,CW[1],RH,'#fff');
     F(18,'');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
-    x.fillText('《'+ci.j+'｜'+ci.t+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RH/2,CW[1]-10);
+    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RH/2,CW[1]-10);
     box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',17,'');
     const sl=slots(r.c), n=Math.max(sl.length,1), cw=CW[3]/n;
     sl.forEach((s,k)=>{
@@ -766,7 +766,7 @@ function exportGatePNG(battles){
     x.font='bold 13px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
     x.fillStyle='#3B332C'; x.textAlign='left'; x.textBaseline='alphabetic';
     x.fillText(date||'', tx+8, ty+16);
-    x.fillText('《'+ci.j+'｜'+ci.t+'｜'+ci.k+'》 Lv'+ci.lv, tx+8, ty+32);
+    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》 Lv'+ci.lv, tx+8, ty+32);
 
     const cx=tx+TILE/2, cy=ty+TILE/2+20, scale=72;
     x.fillStyle='#C9BFAE'; x.beginPath();
