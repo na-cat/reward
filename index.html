@@ -188,6 +188,7 @@ function load(){
 function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}schedulePush();}
 
 /* ---------- ギルド ---------- */
+const DEFAULT_GUILDS=['ラーメン','月の雫','甘噛み亭','酒処','NAMELESS','和菓子屋さん','水曜日のアリス','냥냥','수호','비타민해요'];
 function gcolor(n){const g=S.guilds.find(x=>x.n===n);return g?g.c:'#EEE';}
 function addGuild(n,c){
   n=(n||'').trim(); if(!n) return null;
@@ -223,7 +224,26 @@ function complete(j){
   if(s.length!==4) return false;
   return new Set(s.map(x=>x.lv)).size===4 && new Set(s.map(x=>x.ty)).size===4;
 }
-function rankOf(lv){return 5-lv;}           // Lv4→1位 … Lv1→4位
+function rankOf(lv){return 5-lv;}           // 英霊のLvだけを見た場合の目安（実際の順位はcomputeRanksで計算）
+// 占拠ギルドは必ず1位。それ以外は、占拠ギルドを除いた中でLvの高い英霊を取った順に2位から。
+// ボスなし参加（ex）は、割り当て済みの人数の次の順位（最低でも5位）扱い。
+function computeRanks(r){
+  const ranks={};
+  if(r.occ) ranks[r.occ]=1;
+  const byGuild={};
+  slots(r.c).forEach(sl=>{
+    const g=(r.a||{})[sl.lv]; if(!g||g===r.occ) return;
+    if(!(g in byGuild) || sl.lv>byGuild[g]) byGuild[g]=sl.lv;
+  });
+  const ordered=Object.keys(byGuild).sort((a,b)=>byGuild[b]-byGuild[a]);
+  let rk=r.occ?2:1;
+  ordered.forEach(g=>{ if(!(g in ranks)){ranks[g]=rk; rk++;} });
+  (r.ex||[]).forEach(g=>{
+    if(!g||(g in ranks)) return;
+    ranks[g]=Math.max(rk,5);
+  });
+  return ranks;
+}
 function reward(castleLv,rank){
   const t=S.rewards[castleLv]||S.rewards[1];
   return t[Math.min(rank,t.length)-1]||[0,0,0];
@@ -252,26 +272,17 @@ function tryAssign(r,newVal,curVal,applyFn){
   applyFn(newVal);
 }
 
-// 同じギルドが複数門を取った場合、集計は最上位（最もLvが高い門）のみでカウントする
+// 占拠ギルド＝必ず1位、それ以外はLvの高い英霊を取った順（computeRanks）で集計する
 function tally(){
   const m={};
   const get=n=>m[n]||(m[n]={n:n,bp:0,bx:0,tk:0,r:[0,0,0,0,0]});
   S.battles.forEach(b=>{
     b.rows.forEach(r=>{
       const clv=(CITY[r.c]||{}).lv||1;
-      const byGuild={};
-      slots(r.c).forEach(sl=>{
-        const g=(r.a||{})[sl.lv]; if(!g) return;
-        if(!byGuild[g] || sl.lv>byGuild[g].lv) byGuild[g]={lv:sl.lv};
-      });
-      Object.keys(byGuild).forEach(g=>{
-        const rk=rankOf(byGuild[g].lv), rw=reward(clv,rk), o=get(g);
-        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[rk-1]++;
-      });
-      (r.ex||[]).forEach(g=>{
-        if(!g || byGuild[g]) return; // 既に上位ボスで集計済みなら二重にしない
-        const rw=reward(clv,5), o=get(g);
-        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[4]++;
+      const ranks=computeRanks(r);
+      Object.keys(ranks).forEach(g=>{
+        const rk=ranks[g], rw=reward(clv,rk), o=get(g);
+        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[Math.min(rk,5)-1]++;
       });
     });
   });
@@ -417,7 +428,7 @@ function rowCard(B,r,idx){
   slots(r.c).forEach(sl=>{
     const s=el('<div class="slot"></div>');
     const where = sl.g ? ('<span class="gate">'+sl.g+'</span>'+(sl.st?' ★':'')) : '<span class="closed">'+T('closed')+'</span>';
-    s.appendChild(el('<div class="lab"><b>Lv'+sl.lv+'・'+(5-sl.lv)+'位</b>'+facn(sl.ty)+' '+where+'</div>'));
+    s.appendChild(el('<div class="lab"><b>Lv'+sl.lv+'</b>'+facn(sl.ty)+' '+where+'</div>'));
     const cur=(r.a||{})[sl.lv];
     s.appendChild(guildSelect(cur,v=>{tryAssign(r,v,cur,val=>{r.a=r.a||{};r.a[sl.lv]=val;save();render();});}));
     card.appendChild(s);
@@ -459,11 +470,10 @@ function rowCard(B,r,idx){
   }
   shotRow.appendChild(shotWrap); card.appendChild(shotRow);
 
-  // この城の報酬プレビュー
-  const rows=[];
-  slots(r.c).forEach(sl=>{const g=(r.a||{})[sl.lv];if(!g)return;const rk=5-sl.lv,w=reward(c.lv,rk);
-    rows.push([rk+'位',g,w]);});
-  (r.ex||[]).forEach(g=>{const w=reward(c.lv,5);rows.push([T('place5'),g,w]);});
+  // この城の報酬プレビュー（占拠ギルド＝1位、以下Lvの高い順）
+  const ranks=computeRanks(r);
+  const rows=Object.keys(ranks).sort((a,b)=>ranks[a]-ranks[b])
+    .map(g=>{const rk=ranks[g],w=reward(c.lv,rk);return [(rk>=5?T('place5'):rk+'位'),g,w];});
   if(rows.length){
     let t='<table><tr><th>'+T('rank')+'</th><th>'+T('guild')+'</th><th class="num">'+T('boxp')+'</th><th class="num">'+T('box')+'</th><th class="num">'+T('ticket')+'</th></tr>';
     rows.forEach(x=>{t+='<tr><td>'+x[0]+'</td><td>'+x[1]+'</td><td class="num">'+x[2][0]+'</td><td class="num">'+x[2][1]+'</td><td class="num">'+x[2][2]+'</td></tr>';});
@@ -530,7 +540,7 @@ function castleCard(j){
   [4,3,2,1].forEach(lv=>{
     const sl=b.s.find(x=>x.lv===lv);
     const s=el('<div class="slot"></div>');
-    s.appendChild(el('<div class="lab"><b>Lv'+lv+'・'+(5-lv)+'位</b></div>'));
+    s.appendChild(el('<div class="lab"><b>Lv'+lv+'</b></div>'));
     const ts=document.createElement('select');
     ts.appendChild(new Option('—',''));
     FAC.forEach((f,i)=>ts.appendChild(new Option(f[S.lang]+'／'+SPN[i][S.lang],i)));
@@ -788,7 +798,7 @@ function exportGatePNG(battles){
     if(noGate.length){
       x.font='11px system-ui'; x.fillStyle='#8A7D6E'; x.textAlign='left';
       let ly=ty+TILE-14*noGate.length-6;
-      noGate.forEach(({s,g})=>{ x.fillText('配布：'+facn(s.ty)+' → '+g, tx+8, ly); ly+=14; });
+      noGate.forEach(({s,g})=>{ x.fillText(facn(s.ty)+' → '+g, tx+8, ly); ly+=14; });
     }
   });
   x.font='11px system-ui'; x.textAlign='left'; x.textBaseline='middle';
@@ -802,7 +812,13 @@ function exportGatePNG(battles){
 
 /* ---------- 起動 ---------- */
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.l;save();render();});
-load(); render(); doPull(false);
+load(); render(); doPull(false).then(()=>{
+  // 同期データが本当に空っぽの初回だけ、デフォルトのギルドを入れておく
+  if(!S.guilds.length){
+    DEFAULT_GUILDS.forEach(n=>addGuild(n));
+    save(); render();
+  }
+});
 // 自分が今編集していない間だけ、20秒ごとに自動で最新を受信する
 setInterval(()=>{if(!dirty&&!document.hidden)doPull(false);},20000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!dirty)doPull(false);});
