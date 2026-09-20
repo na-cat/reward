@@ -581,6 +581,10 @@ function castleCard(j){
     const stl=el('<label class="small" style="display:flex;align-items:center;gap:3px">★</label>');
     stl.prepend(st);
     const apply=()=>{
+      // 施設がまだ選ばれておらず、元々この行にデータも無い場合は、
+      // 番号や★だけ入力した時点ではまだ何も確定させない
+      // （保存・再描画してしまうと、入力途中の値が画面から消えてしまうため）
+      if(ts.value===''&&!sl) return;
       const oldX=sl&&sl.x, oldY=sl&&sl.y; // 元々この門に座標情報があれば引き継ぐ（消さない）
       b.s=b.s.filter(x=>x.lv!==lv);
       if(ts.value!==''){
