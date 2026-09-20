@@ -102,7 +102,9 @@ const L = {
   hint4:'4体そろっていない城は、予定を作るときに順位が正しく出ません。この画面で補ってください。',
   copyOK:'コピーしました',saved:'保存しました',
   confirmDel:'削除しますか？',
-  entryReward:'入場報酬を受け取るギルド'},
+  entryReward:'入場報酬を受け取るギルド',
+  decoy:'塗りのみ（入場しない）',decoyShort:'塗りのみ',
+  decoyNote:'※塗りのみ・入場しないため報酬計算には含まれません'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -120,7 +122,9 @@ const L = {
   hint4:'英靈不足4隻的城池，預定表無法正確計算名次。請在此畫面補齊。',
   copyOK:'已複製',saved:'已儲存',
   confirmDel:'要刪除嗎？',
-  entryReward:'獲得入場獎勵的公會'},
+  entryReward:'獲得入場獎勵的公會',
+  decoy:'僅塗色（不入場）',decoyShort:'僅塗色',
+  decoyNote:'※僅塗色、未入場，不計入獎勵計算'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -138,7 +142,9 @@ const L = {
   hint4:'영령이 4체가 아닌 성은 순위를 정확히 계산할 수 없습니다. 이 화면에서 채워주세요.',
   copyOK:'복사했습니다',saved:'저장했습니다',
   confirmDel:'삭제하시겠습니까?',
-  entryReward:'입장 보상을 받는 길드'}
+  entryReward:'입장 보상을 받는 길드',
+  decoy:'색칠만（입장 안 함）',decoyShort:'색칠만',
+  decoyNote:'※색칠만 하고 입장하지 않아 보상 계산에 포함되지 않습니다'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -252,6 +258,7 @@ function computeRanks(r){
   if(r.occ) ranks[r.occ]=1;
   const byGuild={};
   slots(r.c).forEach(sl=>{
+    if(r.noCalc&&r.noCalc[sl.lv]) return; // 牽制のみ（門は塗ったが入場しない）ため計算対象外
     const g=(r.a||{})[sl.lv]; if(!g||g===r.occ) return;
     if(!(g in byGuild) || sl.lv>byGuild[g]) byGuild[g]=sl.lv;
   });
@@ -451,11 +458,20 @@ function rowCard(B,r,idx){
   card.appendChild(oc);
 
   slots(r.c).forEach(sl=>{
-    const s=el('<div class="slot"></div>');
+    const s=el('<div class="slot" style="flex-wrap:wrap"></div>');
     const where = sl.g ? ('<span class="gate">'+sl.g+'</span>'+(sl.st?' ★':'')) : '<span class="closed">'+T('closed')+'</span>';
     s.appendChild(el('<div class="lab"><b>Lv'+sl.lv+'</b>'+facn(sl.ty)+' '+where+'</div>'));
     const cur=(r.a||{})[sl.lv];
-    s.appendChild(guildSelect(cur,v=>{tryAssign(r,v,cur,val=>{r.a=r.a||{};r.a[sl.lv]=val;save();render();});}));
+    s.appendChild(guildSelect(cur,v=>{tryAssign(r,v,cur,val=>{r.a=r.a||{};r.a[sl.lv]=val;
+      if(!val && r.noCalc) delete r.noCalc[sl.lv]; // ギルド割当を外したら牽制フラグも一緒に外す
+      save();render();});}));
+    // 牽制のみ（門は塗るが実際には入場しない）：予定表には表示するが、報酬計算からは除外する
+    const dc=document.createElement('input'); dc.type='checkbox';
+    dc.checked=!!(r.noCalc&&r.noCalc[sl.lv]); dc.disabled=!cur;
+    const dl=el('<label class="small" style="display:flex;align-items:center;gap:4px;flex:0 0 100%;margin:2px 0 0 102px;opacity:'+(cur?'1':'.5')+'">'+T('decoy')+'</label>');
+    dl.prepend(dc);
+    dc.onchange=()=>{r.noCalc=r.noCalc||{}; if(dc.checked) r.noCalc[sl.lv]=true; else delete r.noCalc[sl.lv]; save();render();};
+    s.appendChild(dl);
     card.appendChild(s);
   });
 
@@ -531,7 +547,7 @@ function renderSum(){
   S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(bt=>{
     const m={};
     bt.rows.forEach(r=>{const clv=(CITY[r.c]||{}).lv||1;
-      slots(r.c).forEach(sl=>{const g=(r.a||{})[sl.lv];if(!g)return;const w=reward(clv,5-sl.lv);
+      slots(r.c).forEach(sl=>{if(r.noCalc&&r.noCalc[sl.lv])return;const g=(r.a||{})[sl.lv];if(!g)return;const w=reward(clv,5-sl.lv);
         m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});
       (r.ex||[]).forEach(g=>{const w=reward(clv,5);m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});});
     const ks=Object.keys(m).sort((x,y)=>m[y][2]-m[x][2]);
@@ -769,9 +785,10 @@ function exportPNG(battles){
   battles.forEach(B=>B.rows.forEach(r=>flat.push({date:B.date,r})));
   if(!flat.length){alert(T('noData'));return;}
   const multiDate = new Set(battles.map(b=>b.date)).size>1;
-  const dpr=2, W=1620, RH=124, HH=150, GH=52, PAD=12, TT=44;
+  const hasDecoy = flat.some(({r})=>r.noCalc && Object.keys(r.noCalc).some(lv=>r.noCalc[lv] && (r.a||{})[lv]));
+  const dpr=2, W=1620, RH=124, HH=150, GH=52, PAD=12, TT=44, NOTE=hasDecoy?76:0;
   const groupCount = multiDate ? battles.length : 0;
-  const H = TT + HH + RH*flat.length + GH*groupCount + PAD*2;
+  const H = TT + HH + RH*flat.length + GH*groupCount + PAD*2 + NOTE;
   const cv=document.getElementById('cv'); cv.width=W*dpr; cv.height=H*dpr;
   const x=cv.getContext('2d'); x.scale(dpr,dpr);
   x.fillStyle='#fff'; x.fillRect(0,0,W,H);
@@ -814,11 +831,17 @@ function exportPNG(battles){
       const a=C[3]+cw*k;
       if(!s){ box(a,y,cw,RH,'#fff'); ctr('未登録',a,y,cw,RH,'#B0A695',15,'bold'); return; }
       const g=(r.a||{})[s.lv]||'';
+      const isDecoy=!!(g && r.noCalc && r.noCalc[s.lv]);
       box(a,y,cw*0.3,RH,'#F3EDE4'); ctr(s.g?String(s.g):'—',a,y,cw*0.3,RH,'#222',22,'bold');
-      box(a+cw*0.3,y,cw*0.7,RH,'#fff'); ctr(g,a+cw*0.3,y,cw*0.7,RH,'#222',23,'bold');
+      box(a+cw*0.3,y,cw*0.7,RH,isDecoy?'#F5F1EA':'#fff'); ctr(isDecoy?('※'+g):g,a+cw*0.3,y,cw*0.7,RH,isDecoy?'#8A7D6E':'#222',23,'bold');
     });
     y+=RH;
   });
+  if(hasDecoy){
+    x.font='17px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+    x.fillStyle='#8A7D6E'; x.textAlign='left'; x.textBaseline='top';
+    [L.zh.decoyNote,L.ja.decoyNote,L.ko.decoyNote].forEach((t,i)=>x.fillText(t, PAD, y+8+i*22));
+  }
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
     a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'.png';a.click();});
 }
@@ -898,8 +921,10 @@ function exportGatePNG(battles){
     const baseGates = (b.all&&b.all.length) ? b.all : sl.filter(s=>s.x!==undefined&&s.y!==undefined).map(s=>({g:s.g,x:s.x,y:s.y,st:s.st}));
     const pts=baseGates.map(gt=>{
       const m=sl.find(s=>s.g===gt.g && !!s.st===!!gt.st && s.x!==undefined);
+      const guild = m?((r.a||{})[m.lv]||''):'';
+      const decoy = !!(m && guild && r.noCalc && r.noCalc[m.lv]);
       return {px:cx+gt.x*scale, py:cy+gt.y*scale, g:gt.g, st:!!gt.st,
-        ty: m?m.ty:-1, guild: m?((r.a||{})[m.lv]||''):'' , known:!!m};
+        ty: m?m.ty:-1, guild, decoy, known:!!m};
     });
 
     // 門どうしが近いほどマスを小さくして、菱形クラスタが重ならないようにする
@@ -919,7 +944,7 @@ function exportGatePNG(battles){
     // ラベル（ギルド名）は、割り当てが決まっている門にだけ置く。既に置いたものと重ならない位置を探す
     const fontSize=Math.max(12,Math.min(17,s+3));
     pts.filter(p=>p.guild).forEach(p=>{
-      const text=p.guild;
+      const text=p.decoy?('※'+p.guild):p.guild;
       x.font='bold '+fontSize+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
       const tw=x.measureText(text).width, th=fontSize+4;
       const cands=[
@@ -937,10 +962,10 @@ function exportGatePNG(battles){
       }
       if(!placed){ const lx=p.px, ly=p.py+s*2.2; placed={lx,ly,rect:{x1:lx-tw/2-3,x2:lx+tw/2+3,y1:ly-th/2,y2:ly+th/2}}; }
       occupied.push(placed.rect);
-      labelOutline(x, text, placed.lx, placed.ly, fontSize, '#2b3a67');
+      labelOutline(x, text, placed.lx, placed.ly, fontSize, p.decoy?'#8A7D6E':'#2b3a67');
     });
 
-    const noGate=sl.filter(s=>s.x===undefined||s.y===undefined).map(s=>({s,g:(r.a||{})[s.lv]||''}));
+    const noGate=sl.filter(s=>s.x===undefined||s.y===undefined).map(s=>({s,g:(r.a||{})[s.lv]||'',decoy:!!(r.noCalc&&r.noCalc[s.lv])}));
     if(!pts.length){
       x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle';
       x.fillText(S.lang==='zh'?'（尚未登記門的位置）':S.lang==='ko'?'（문 위치 미등록）':'（門の位置データ未登録）', cx, cy+56);
@@ -948,7 +973,7 @@ function exportGatePNG(battles){
     if(noGate.length){
       x.font='13px system-ui'; x.fillStyle='#8A7D6E'; x.textAlign='left';
       let ly=ty+TILE-16*noGate.length-8;
-      noGate.forEach(({s,g})=>{ x.fillText(facn(s.ty)+(g?' → '+g:'（'+(S.lang==='zh'?'未指定':S.lang==='ko'?'미지정':'未指定')+'）'), tx+10, ly); ly+=16; });
+      noGate.forEach(({s,g,decoy})=>{ x.fillText(facn(s.ty)+(g?' → '+(decoy?'※':'')+g:'（'+(S.lang==='zh'?'未指定':S.lang==='ko'?'미지정':'未指定')+'）'), tx+10, ly); ly+=16; });
     }
   });
   x.font='13px system-ui'; x.textAlign='left'; x.textBaseline='middle';
