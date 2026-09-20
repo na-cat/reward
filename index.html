@@ -177,6 +177,7 @@ function cname(j){const c=CITY[j];if(!c)return j;return S.lang==='zh'?c.t:S.lang
 function cname3(j){const c=CITY[j];if(!c)return j;return c.t+'｜'+c.j+'｜'+c.k;}
 function pname(i){const p=SEED.provs[i];return S.lang==='zh'?p[0]:S.lang==='ko'?p[2]:p[1];}
 function facn(t){return FAC[t][S.lang];}
+function facn3(t){return FAC[t].zh+'｜'+FAC[t].ja+'｜'+FAC[t].ko;} // 画像出力用（どの国の人が見ても分かるように3言語併記）
 function spn(t){return SPN[t][S.lang];}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
@@ -892,9 +893,19 @@ function labelOutline(x,t,px,py,size,fill){
 function exportGatePNG(battles){
   const flat=[]; battles.forEach(B=>B.rows.forEach(r=>flat.push({date:B.date,r})));
   if(!flat.length){alert(T('noData'));return;}
-  const dpr=2, TILE=360, GAP=16, COLS=Math.min(3,flat.length);
+  const dpr=2, TILE=360, GAP=16, TOPM=34, COLS=Math.min(3,flat.length);
   const ROWSn=Math.ceil(flat.length/COLS);
-  const W=COLS*TILE+(COLS+1)*GAP, H=ROWSn*TILE+(ROWSn+1)*GAP+34;
+  const W=COLS*TILE+(COLS+1)*GAP;
+  // 施設の凡例は、どの国の人が見ても分かるように「繁體字｜日本語｜韓国語」の3言語表記にする。
+  // 文字数が伸びる分、実際の文字幅を測って列幅・行数・下部の余白を動的に決める
+  const LEGFONT='13px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+  const legLabels=FAC.map(f=>f.zh+'｜'+f.ja+'｜'+f.ko);
+  const mcv=document.createElement('canvas'); const mx=mcv.getContext('2d'); mx.font=LEGFONT;
+  const legW=Math.max(...legLabels.map(t=>mx.measureText(t).width))+34;
+  const legPerRow=Math.max(1,Math.floor((W-20)/legW));
+  const legRows=Math.ceil(FAC.length/legPerRow);
+  const BOTM=legRows*20+24;
+  const H=ROWSn*TILE+(ROWSn+1)*GAP+TOPM+BOTM;
   let cv=document.getElementById('cv2');
   if(!cv){cv=document.createElement('canvas');cv.id='cv2';cv.style.display='none';document.body.appendChild(cv);}
   cv.width=W*dpr; cv.height=H*dpr; const x=cv.getContext('2d'); x.scale(dpr,dpr);
@@ -902,7 +913,7 @@ function exportGatePNG(battles){
 
   flat.forEach(({date,r},i)=>{
     const col=i%COLS, row=Math.floor(i/COLS);
-    const tx=GAP+col*(TILE+GAP), ty=34+GAP+row*(TILE+GAP);
+    const tx=GAP+col*(TILE+GAP), ty=TOPM+GAP+row*(TILE+GAP);
     const ci=CITY[r.c]||{lv:1,j:r.c,t:r.c,k:r.c};
     x.fillStyle='#fff'; x.strokeStyle='#E7DED2'; x.lineWidth=1;
     x.fillRect(tx,ty,TILE,TILE); x.strokeRect(tx,ty,TILE,TILE);
@@ -967,22 +978,24 @@ function exportGatePNG(battles){
 
     const noGate=sl.filter(s=>s.x===undefined||s.y===undefined).map(s=>({s,g:(r.a||{})[s.lv]||'',decoy:!!(r.noCalc&&r.noCalc[s.lv])}));
     if(!pts.length){
-      x.font='13px system-ui'; x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle';
-      x.fillText(S.lang==='zh'?'（尚未登記門的位置）':S.lang==='ko'?'（문 위치 미등록）':'（門の位置データ未登録）', cx, cy+56);
+      x.font='13px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+      x.fillStyle='#B0A695'; x.textAlign='center'; x.textBaseline='middle';
+      x.fillText('（尚未登記門的位置｜門の位置データ未登録｜문 위치 미등록）', cx, cy+56);
     }
     if(noGate.length){
-      x.font='13px system-ui'; x.fillStyle='#8A7D6E'; x.textAlign='left';
+      x.font='13px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';
+      x.fillStyle='#8A7D6E'; x.textAlign='left';
       let ly=ty+TILE-16*noGate.length-8;
-      noGate.forEach(({s,g,decoy})=>{ x.fillText(facn(s.ty)+(g?' → '+(decoy?'※':'')+g:'（'+(S.lang==='zh'?'未指定':S.lang==='ko'?'미지정':'未指定')+'）'), tx+10, ly); ly+=16; });
+      noGate.forEach(({s,g,decoy})=>{ x.fillText(facn3(s.ty)+(g?' → '+(decoy?'※':'')+g:'（未指定｜未指定｜미지정）'), tx+10, ly); ly+=16; });
     }
   });
-  x.font='13px system-ui'; x.textAlign='left'; x.textBaseline='middle';
-  const legW=96, perRow=Math.max(1,Math.floor((W-20)/legW));
+  x.font=LEGFONT; x.textAlign='left'; x.textBaseline='middle';
+  const legendTop=TOPM+ROWSn*(TILE+GAP)+14;
   FAC.forEach((f,i)=>{
-    const col=i%perRow, row=Math.floor(i/perRow);
-    const lx=10+col*legW, ly=H-16-Math.floor((FAC.length-1)/perRow-row)*18;
+    const col=i%legPerRow, row=Math.floor(i/legPerRow);
+    const lx=10+col*legW, ly=legendTop+10+row*20;
     x.fillStyle=FACCOL[i]; x.beginPath(); x.arc(lx+7,ly,7,0,7); x.fill();
-    x.fillStyle='#3B332C'; x.fillText(f[S.lang], lx+19, ly);
+    x.fillStyle='#3B332C'; x.fillText(legLabels[i], lx+19, ly);
   });
 
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
