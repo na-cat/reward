@@ -263,7 +263,8 @@ function complete(j){
 }
 function rankOf(lv){return 5-lv;}           // 英霊のLvだけを見た場合の目安（実際の順位はcomputeRanksで計算）
 // 占拠ギルドは必ず1位。それ以外は、占拠ギルドを除いた中でLvの高い英霊を取った順に2位から。
-// ボスなし参加（ex）は、割り当て済みの人数の次の順位（最低でも5位）扱い。
+// ボスなし参加（ex＝英霊がいない門などから入ったギルド）は、その後ろに実際の参加順で続ける
+// （例：参加が占拠ギルド＋ボスなし参加の2ギルドだけなら、ボスなし参加は2位になる）。
 function computeRanks(r){
   const ranks={};
   if(r.occ) ranks[r.occ]=1;
@@ -278,7 +279,7 @@ function computeRanks(r){
   ordered.forEach(g=>{ if(!(g in ranks)){ranks[g]=rk; rk++;} });
   (r.ex||[]).forEach(g=>{
     if(!g||(g in ranks)) return;
-    ranks[g]=Math.max(rk,5);
+    ranks[g]=rk; rk++;
   });
   return ranks;
 }
@@ -641,10 +642,12 @@ function renderSum(){
   let b='<div class="card"><h2>'+T('breakdown')+'</h2>';
   S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(bt=>{
     const m={};
+    // 合計タブと同じcomputeRanks（占拠ギルド優先＋ボスなし参加は実際の参加順）で計算する。
+    // 以前はここだけ別の簡易計算（Lvから順位を逆算）をしていて、合計タブの数字とズレる原因になっていた
     bt.rows.forEach(r=>{const clv=(CITY[r.c]||{}).lv||1;
-      slots(r.c).forEach(sl=>{if(r.noCalc&&r.noCalc[sl.lv])return;const g=(r.a||{})[sl.lv];if(!g)return;const w=reward(clv,5-sl.lv);
-        m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});
-      (r.ex||[]).forEach(g=>{const w=reward(clv,5);m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});});
+      const ranks=computeRanks(r);
+      Object.keys(ranks).forEach(g=>{const w=reward(clv,ranks[g]);
+        m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});});
     const ks=Object.keys(m).sort((x,y)=>m[y][2]-m[x][2]);
     b+='<div class="sep"></div><div class="small"><b>'+(bt.date||'----')+'</b>（'+bt.rows.length+'）</div>';
     if(!ks.length){b+='<div class="muted small">'+T('noData')+'</div>';}
