@@ -502,8 +502,8 @@ function rowCard(B,r,idx){
   } else {
     const stEl=el('<div class="small muted" style="margin-bottom:4px"></div>');
     shotWrap.appendChild(stEl);
-    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
-    fi.onchange=e=>{const f=e.target.files[0]; if(!f)return;
+    const handleShot=(f)=>{
+      if(!f)return;
       stEl.textContent=(S.lang==='zh'?'處理中…':S.lang==='ko'?'처리 중…':'処理中…');
       fileToImage(f,img=>{
         const mw=900, sc=Math.min(1,mw/img.width);
@@ -513,7 +513,35 @@ function rowCard(B,r,idx){
         toast('✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付しました'));
       });
     };
+    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
+    fi.onchange=e=>handleShot(e.target.files[0]);
     shotWrap.appendChild(fi);
+    // クリップボードからの貼り付けにも対応（①ここにフォーカスしてCtrl+V、②ボタンで直接読み取り、の2通り）
+    const pasteBox=el('<div tabindex="0" class="small muted" style="border:1px dashed var(--line);border-radius:8px;padding:8px;margin-top:6px;cursor:text;outline:none">'+
+      (S.lang==='zh'?'點這裡後貼上（Ctrl+V／⌘+V）':S.lang==='ko'?'여기를 클릭한 뒤 붙여넣기（Ctrl+V）':'ここをタップしてから貼り付け（Ctrl+V）')+'</div>');
+    pasteBox.addEventListener('paste',e=>{
+      const items=(e.clipboardData||window.clipboardData||{}).items||[];
+      for(const it of items){
+        if(it.type&&it.type.indexOf('image/')===0){ const f=it.getAsFile(); if(f){handleShot(f); e.preventDefault();} break; }
+      }
+    });
+    shotWrap.appendChild(pasteBox);
+    const pasteBtn=el('<button class="b" type="button" style="margin-top:6px">📋 '+
+      (S.lang==='zh'?'從剪貼簿貼上':S.lang==='ko'?'클립보드에서 붙여넣기':'クリップボードから貼り付け')+'</button>');
+    pasteBtn.onclick=async()=>{
+      try{
+        const items=await navigator.clipboard.read();
+        let found=false;
+        for(const item of items){
+          const type=item.types.find(t=>t.indexOf('image/')===0);
+          if(type){ found=true; handleShot(await item.getType(type)); break; }
+        }
+        if(!found) alert(S.lang==='zh'?'剪貼簿裡沒有圖片':S.lang==='ko'?'클립보드에 이미지가 없습니다':'クリップボードに画像が見つかりませんでした');
+      }catch(err){
+        alert(S.lang==='zh'?'無法讀取剪貼簿（此瀏覽器可能不支援，或未授權）':S.lang==='ko'?'클립보드를 읽을 수 없습니다（브라우저 미지원 또는 권한 없음）':'クリップボードを読み取れませんでした（このブラウザが非対応か、権限が許可されていない可能性があります）');
+      }
+    };
+    shotWrap.appendChild(pasteBtn);
   }
   shotRow.appendChild(shotWrap); card.appendChild(shotRow);
 
