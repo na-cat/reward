@@ -104,7 +104,8 @@ const L = {
   confirmDel:'削除しますか？',
   entryReward:'入場報酬を受け取るギルド',
   decoy:'塗りのみ（入場しない）',decoyShort:'塗りのみ',
-  decoyNote:'※は同盟のギルドの旗を一緒に守ったり、旗の立て直し用の保険で使っていただく門です'},
+  decoyNote:'※は同盟のギルドの旗を一緒に守ったり、旗の立て直し用の保険で使っていただく門です',
+  expectLabel:'この日に入るはずのギルド',expectMissing:'⚠ この日の予定表のどこにも名前がありません'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -124,7 +125,8 @@ const L = {
   confirmDel:'要刪除嗎？',
   entryReward:'獲得入場獎勵的公會',
   decoy:'僅塗色（不入場）',decoyShort:'僅塗色',
-  decoyNote:'※為同盟公會共同守旗、或作為重新插旗保險用的城門'},
+  decoyNote:'※為同盟公會共同守旗、或作為重新插旗保險用的城門',
+  expectLabel:'當天應該參戰的公會',expectMissing:'⚠ 當天的預定表中完全沒有出現這個名字'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -144,7 +146,8 @@ const L = {
   confirmDel:'삭제하시겠습니까?',
   entryReward:'입장 보상을 받는 길드',
   decoy:'색칠만（입장 안 함）',decoyShort:'색칠만',
-  decoyNote:'※는 동맹 길드가 함께 깃발을 지키거나, 깃발을 다시 세우기 위한 보험용으로 사용하는 문입니다'}
+  decoyNote:'※는 동맹 길드가 함께 깃발을 지키거나, 깃발을 다시 세우기 위한 보험용으로 사용하는 문입니다',
+  expectLabel:'이 날 참전해야 하는 길드',expectMissing:'⚠ 이 날 예정표 어디에도 이름이 없습니다'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -286,6 +289,13 @@ function usedGuilds(r){
   (r.ex||[]).forEach(g=>{if(g)s.add(g);});
   return s;
 }
+// その城戦（日）全体で使われているギルドの集合（各城のusedGuildsを合算）。
+// 「この日に入るはずのギルド」がどこにも出てきていないかのチェックに使う
+function battleGuildsUsed(B){
+  const s=new Set();
+  B.rows.forEach(r=>{usedGuilds(r).forEach(g=>s.add(g));});
+  return s;
+}
 function capOf(j){return j==='帝翼' ? 6 : 4;}
 // newVal を curVal の代わりに入れてよいか判定し、よければ applyFn(newVal) を実行
 function tryAssign(r,newVal,curVal,applyFn){
@@ -354,7 +364,7 @@ function renderPlan(){
   const head=el('<div class="card"></div>');
   const r1=el('<div class="row"></div>');
   const nb=el('<button class="b p">＋ '+T('newBattle')+'</button>');
-  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:'',chk:false};
+  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:'',chk:false,expect:[]};
     S.battles.unshift(b);S.cur=b.id;expanded=new Set([b.id]);save();render();};
   r1.appendChild(nb);
   const authors=authorList();
@@ -405,6 +415,14 @@ function battleCard(B){
   h.appendChild(arrow);
   h.onclick=()=>{if(open)expanded.delete(B.id);else expanded.add(B.id);render();};
   card.appendChild(h);
+
+  // 「この日に入るはずのギルド」を選んでいて、実際の予定表のどこにも名前が出てこない場合は、
+  // 折り畳んだままでも気づけるように見出しのすぐ下に警告を出す（選ばなければ何も出ない・任意機能）
+  const missing=(B.expect||[]).filter(g=>!battleGuildsUsed(B).has(g));
+  if(missing.length){
+    card.appendChild(el('<div class="warnbox" style="margin-top:6px">'+T('expectMissing')+'：'+missing.join('、')+'</div>'));
+  }
+
   if(!open) return card;
 
   const c2=el('<div style="margin-top:10px"></div>');
@@ -422,6 +440,18 @@ function battleCard(B){
   const pg1=el('<button class="b g">'+(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表')+'</button>'); pg1.onclick=()=>exportPNG([B]); rd.appendChild(pg1);
   const pg2=el('<button class="b g">'+(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図')+'</button>'); pg2.onclick=()=>exportGatePNG([B]); rd.appendChild(pg2);
   c2.appendChild(rd);
+
+  // この日に入るはずのギルドを選ぶ（任意）。選んでも選ばなくても入力自体には影響しない
+  const exp=el('<div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:center"></div>');
+  exp.appendChild(el('<span class="muted small" style="margin-right:4px">'+T('expectLabel')+'</span>'));
+  (B.expect||[]).forEach((g,i)=>{
+    const p=el('<span class="pill"><i style="background:'+gcolor(g)+'"></i>'+g+'<button>✕</button></span>');
+    p.querySelector('button').onclick=()=>{B.expect.splice(i,1);save();render();};
+    exp.appendChild(p);
+  });
+  const expAdd=guildSelect('',v=>{if(!v)return; B.expect=B.expect||[]; if(!B.expect.includes(v))B.expect.push(v); save();render();});
+  exp.appendChild(expAdd);
+  c2.appendChild(exp);
 
   const pidx = openProv[B.id]===undefined ? 0 : openProv[B.id];
   c2.appendChild(provPills(pidx, i=>{openProv[B.id]=i; render();}));
