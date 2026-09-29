@@ -681,6 +681,16 @@ function castleCard(j){
   const card=el('<div class="card" style="border-left:5px solid '+pc+'"></div>');
   card.appendChild(el('<div><span class="lvb">Lv'+ci.lv+'</span> <b>'+cname(j)+'</b> <span class="muted">'+pname(ci.p)+'</span><div class="muted">'+cname3(j)+'</div></div>'));
   if(!complete(j)) card.appendChild(el('<div class="warnbox">⚠ '+b.s.length+'/4</div>'));
+  if(b.manual){
+    const lk=el('<div class="muted small" style="margin-top:4px">🔒 '+
+      (S.lang==='zh'?'已手動修正（Gate Map自動同步不會覆蓋此城）':
+       S.lang==='ko'?'수동으로 수정됨（Gate Map 자동 동기화가 이 성을 덮어쓰지 않습니다）':
+       '手動で修正済み（Gate Mapの自動同期ではこの城を上書きしません）')+
+      ' <a href="#" style="margin-left:6px">'+
+      (S.lang==='zh'?'解除鎖定':S.lang==='ko'?'잠금 해제':'ロック解除')+'</a></div>');
+    lk.querySelector('a').onclick=(e)=>{e.preventDefault();delete b.manual;save();render();};
+    card.appendChild(lk);
+  }
   [4,3,2,1].forEach(lv=>{
     const sl=b.s.find(x=>x.lv===lv);
     const s=el('<div class="slot"></div>');
@@ -706,6 +716,7 @@ function castleCard(j){
         if(oldX!==undefined && oldY!==undefined){e.x=oldX;e.y=oldY;}
         b.s.push(e);
       }
+      b.manual=1; // 手動で直した城は、Gate Mapの自動同期で勝手に上書きされないようにロックする
       save();render();
     };
     ts.onchange=apply; gi.onchange=apply; st.onchange=apply;
@@ -749,7 +760,7 @@ function renderData(){
       catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
     w.appendChild(f); return w;};
   ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);}));
-  ir.appendChild(mk(T('impGM'),importGateMap));
+  ir.appendChild(mk(T('impGM'),o=>importGateMap(o,true)));
   ir.appendChild(mk(T('impCP'),importCastlePlan));
   const ex=el('<button class="b p">'+T('exp')+'</button>');
   ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
@@ -819,7 +830,7 @@ const DROP=new Set(['敵人']);
 function normGuild(n){n=(n||'').trim();n=FIX[n]||n;return DROP.has(n)?'':n;}
 const T2J={};SEED.cities.forEach(c=>T2J[c.t]=c.j);
 const GATEHINT={}; // 城 -> 英霊未記録の★門（位置あり）。4体目の自動推測をその門に結びつけるため
-function importGateMap(o){
+function importGateMap(o,force){
   const gm=o.gm||o;
   Object.keys(gm).forEach(t=>{
     const j=T2J[t]||(CITY[t]?t:null); if(!j)return;
@@ -829,7 +840,10 @@ function importGateMap(o){
     // 実在する門は全部（英霊が分かっていない門も含む）覚えておく。図に描く時に使う
     const all=gates.filter(g=>g.x!==undefined&&g.y!==undefined)
       .map(g=>({g:g.n,x:g.x,y:g.y,st:g.star?1:0}));
-    if(s.length){S.boss[j]={s:s,ng:gates.length,all:all};}
+    // 城タブで手動修正（manualロック）した城は、明示的な取得（force）でない限り
+    // Gate Map側の値で丸ごと上書きしない（バックグラウンド自動同期に消されないため）
+    const manualLock=!!(S.boss[j] && S.boss[j].manual && !force);
+    if(s.length && !manualLock){S.boss[j]={s:s,ng:gates.length,all:all};}
     else if(all.length && S.boss[j]){ S.boss[j].all=all; }
     const blankStar=gates.find(g=>g.star && !g.sp);
     if(blankStar) GATEHINT[j]={g:blankStar.n,x:blankStar.x,y:blankStar.y};
@@ -887,7 +901,7 @@ async function pullGateMapLive(loud){
     const r=await fetch('/api/gatemap',{cache:'no-store'});
     if(!r.ok)throw new Error(r.status);
     const o=await r.json();
-    if(o && o.gm){ importGateMap(o); save(); render(); if(loud) toast('⬇ OK'); }
+    if(o && o.gm){ importGateMap(o,loud); save(); render(); if(loud) toast('⬇ OK'); }
     else if(loud) toast('⬇ —');
     gmst('⬇ '+new Date().toLocaleTimeString());
   }catch(e){ gmst('⬇ ✕ '+e.message); if(loud) alert('gatemap sync error: '+e.message); }
