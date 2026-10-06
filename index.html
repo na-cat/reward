@@ -579,9 +579,21 @@ function rowCard(B,r,idx){
   const card=el('<div class="card" style="border-left:5px solid '+pc+'"></div>');
   const h=el('<div class="row" style="justify-content:space-between"></div>');
   h.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b><div class="muted">'+cname3(r.c)+'</div></div>'));
+  const btns=el('<div class="row" style="gap:4px"></div>');
+  const up=el('<button class="b" style="padding:2px 8px">▲</button>');
+  up.disabled=(idx===0);
+  if(up.disabled) up.style.opacity='0.3';
+  up.onclick=()=>{if(idx>0){const t=B.rows[idx-1];B.rows[idx-1]=B.rows[idx];B.rows[idx]=t;save();render();}};
+  btns.appendChild(up);
+  const dn=el('<button class="b" style="padding:2px 8px">▼</button>');
+  dn.disabled=(idx===B.rows.length-1);
+  if(dn.disabled) dn.style.opacity='0.3';
+  dn.onclick=()=>{if(idx<B.rows.length-1){const t=B.rows[idx+1];B.rows[idx+1]=B.rows[idx];B.rows[idx]=t;save();render();}};
+  btns.appendChild(dn);
   const x=el('<button class="b d">✕</button>');
   x.onclick=()=>{B.rows.splice(idx,1);save();render();};
-  h.appendChild(x); card.appendChild(h);
+  btns.appendChild(x);
+  h.appendChild(btns); card.appendChild(h);
 
   if(!complete(r.c)) card.appendChild(el('<div class="warnbox">⚠ '+T('incomplete')+'</div>'));
   {
