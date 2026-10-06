@@ -227,6 +227,10 @@ function repairCoords(){
   if(fixed) save();
 }
 function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}schedulePush();}
+// 端末のローカル保存だけ行い、送信（送信台帳の上書き）はしない。Gate Mapのバックグラウンド自動取得など、
+// 「実際にはこの端末でデータを編集していない」場面で使う。ここでsave()を使うと、20秒おきの自動受信のたびに
+// u（更新時刻）が勝手に更新されて送信され、開きっぱなしにしているだけの端末が他の端末の入力を消してしまう。
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 /* ---------- ギルド ---------- */
 const DEFAULT_GUILDS=['ラーメン','月の雫','甘噛み亭','酒処','NAMELESS','和菓子屋さん','水曜日のアリス','냥냥','수호','비타민해요'];
@@ -1074,7 +1078,7 @@ async function pullGateMapLive(loud){
     const r=await fetch('/api/gatemap',{cache:'no-store'});
     if(!r.ok)throw new Error(r.status);
     const o=await r.json();
-    if(o && o.gm){ importGateMap(o,loud); save(); render(); if(loud) toast('⬇ OK'); }
+    if(o && o.gm){ importGateMap(o,loud); saveLocal(); render(); if(loud) toast('⬇ OK'); }
     else if(loud) toast('⬇ —');
     gmst('⬇ '+new Date().toLocaleTimeString());
   }catch(e){ gmst('⬇ ✕ '+e.message); if(loud) alert('gatemap sync error: '+e.message); }
