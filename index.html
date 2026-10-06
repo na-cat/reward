@@ -428,7 +428,7 @@ function provPills(activeIdx,onPick){
 }
 
 /* --- 予定（城戦ごとにアコーディオン） --- */
-let expanded=new Set(), openProv={}, pvBattleId=null;
+let expanded=new Set(), openProv={}, pvBattleId=null, rowOpen=new Set();
 function curBattle(){return S.battles.find(b=>b.id===S.cur)||null;}
 function authorList(){return [...new Set(S.battles.map(b=>b.author).filter(Boolean))].sort();}
 function renderPlan(){
@@ -565,7 +565,7 @@ function battleCard(B){
   (BYPROV[pidx]||[]).forEach(c=>cs.appendChild(new Option(cname(c.j)+'（Lv'+c.lv+'）',c.j)));
   const ra=el('<div class="row" style="margin-top:6px"></div>');
   const ab=el('<button class="b p">'+T('addCastle')+'</button>');
-  ab.onclick=()=>{if(!cs.value)return; B.rows.unshift({c:cs.value,occ:'',a:{},ex:[],shot:''});save();render();};
+  ab.onclick=()=>{if(!cs.value)return; const nr={id:uid(),c:cs.value,occ:'',a:{},ex:[],shot:''}; B.rows.unshift(nr); rowOpen.add(nr.id); save();render();};
   ra.appendChild(cs);ra.appendChild(ab); c2.appendChild(ra);
   card.appendChild(c2);
 
@@ -578,11 +578,19 @@ function fileToImage(file,cb){
   rd.readAsDataURL(file);
 }
 function rowCard(B,r,idx){
+  if(!r.id) r.id=uid(); // 既存データ（idなし）にも後から振る。畳み開閉の状態を区別するためだけに使う
+  const isOpen=rowOpen.has(r.id);
   const c=CITY[r.c]||{lv:1};
   const pc=SEED.col[c.p]||'#ddd';
   const card=el('<div class="card" style="border-left:5px solid '+pc+'"></div>');
   const h=el('<div class="row" style="justify-content:space-between"></div>');
-  h.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b><div class="muted">'+cname3(r.c)+'</div></div>'));
+  const toggle=()=>{ if(isOpen) rowOpen.delete(r.id); else rowOpen.add(r.id); render(); };
+  const left=el('<div style="flex:1;cursor:pointer"></div>');
+  const warnMark=(r.synced===false)?' <span style="color:#B8860B">⚠</span>':'';
+  const sumLine=isOpen?'':(' <span class="muted small">'+(r.occ?('→ '+r.occ):'')+'</span>'+warnMark);
+  left.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b>'+sumLine+'<div class="muted">'+cname3(r.c)+'</div></div>'));
+  left.onclick=toggle;
+  h.appendChild(left);
   const btns=el('<div class="row" style="gap:4px"></div>');
   const up=el('<button class="b" style="padding:2px 8px">▲</button>');
   up.disabled=(idx===0);
@@ -597,7 +605,12 @@ function rowCard(B,r,idx){
   const x=el('<button class="b d">✕</button>');
   x.onclick=()=>{B.rows.splice(idx,1);save();render();};
   btns.appendChild(x);
+  const arrow=el('<button class="b" style="padding:2px 8px">'+(isOpen?'▾':'▸')+'</button>');
+  arrow.onclick=toggle;
+  btns.appendChild(arrow);
   h.appendChild(btns); card.appendChild(h);
+
+  if(!isOpen) return card;
 
   if(!complete(r.c)) card.appendChild(el('<div class="warnbox">⚠ '+T('incomplete')+'</div>'));
   {
