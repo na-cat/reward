@@ -226,11 +226,15 @@ function repairCoords(){
   });
   if(fixed) save();
 }
-function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}schedulePush();}
+// 自動送信はしない。ローカル保存のみ（u だけは更新しておく＝他端末からの古い受信で上書きされないようにするため）。
+// サーバーへの送信は、各城パネルの「これでOK」ボタン／データタブの「⬆送信」ボタンを押した時だけ。
+function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 // 端末のローカル保存だけ行い、送信（送信台帳の上書き）はしない。Gate Mapのバックグラウンド自動取得など、
 // 「実際にはこの端末でデータを編集していない」場面で使う。ここでsave()を使うと、20秒おきの自動受信のたびに
 // u（更新時刻）が勝手に更新されて送信され、開きっぱなしにしているだけの端末が他の端末の入力を消してしまう。
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+// その城（行）の入力内容を変更した時に呼ぶ。「まだ送信してません」の表示を出すためのフラグを立てる。
+function touchRow(r){r.synced=false;save();render();}
 
 /* ---------- ギルド ---------- */
 const DEFAULT_GUILDS=['ラーメン','月の雫','甘噛み亭','酒処','NAMELESS','和菓子屋さん','水曜日のアリス','냥냥','수호','비타민해요'];
@@ -583,12 +587,12 @@ function rowCard(B,r,idx){
   const up=el('<button class="b" style="padding:2px 8px">▲</button>');
   up.disabled=(idx===0);
   if(up.disabled) up.style.opacity='0.3';
-  up.onclick=()=>{if(idx>0){const t=B.rows[idx-1];B.rows[idx-1]=B.rows[idx];B.rows[idx]=t;save();render();}};
+  up.onclick=()=>{if(idx>0){const t=B.rows[idx-1];B.rows[idx-1]=B.rows[idx];B.rows[idx]=t;B.rows[idx-1].synced=false;B.rows[idx].synced=false;save();render();}};
   btns.appendChild(up);
   const dn=el('<button class="b" style="padding:2px 8px">▼</button>');
   dn.disabled=(idx===B.rows.length-1);
   if(dn.disabled) dn.style.opacity='0.3';
-  dn.onclick=()=>{if(idx<B.rows.length-1){const t=B.rows[idx+1];B.rows[idx+1]=B.rows[idx];B.rows[idx]=t;save();render();}};
+  dn.onclick=()=>{if(idx<B.rows.length-1){const t=B.rows[idx+1];B.rows[idx+1]=B.rows[idx];B.rows[idx]=t;B.rows[idx+1].synced=false;B.rows[idx].synced=false;save();render();}};
   btns.appendChild(dn);
   const x=el('<button class="b d">✕</button>');
   x.onclick=()=>{B.rows.splice(idx,1);save();render();};
@@ -605,7 +609,7 @@ function rowCard(B,r,idx){
 
   const oc=el('<div class="slot"></div>');
   oc.appendChild(el('<div class="lab"><b>'+T('occupier')+'</b></div>'));
-  oc.appendChild(guildSelect(r.occ,v=>{tryAssign(r,v,r.occ,val=>{r.occ=val;save();render();});}));
+  oc.appendChild(guildSelect(r.occ,v=>{tryAssign(r,v,r.occ,val=>{r.occ=val;touchRow(r);});}));
   card.appendChild(oc);
 
   slots(r.c).forEach(sl=>{
@@ -615,13 +619,13 @@ function rowCard(B,r,idx){
     const cur=(r.a||{})[sl.lv];
     s.appendChild(guildSelect(cur,v=>{tryAssign(r,v,cur,val=>{r.a=r.a||{};r.a[sl.lv]=val;
       if(!val && r.noCalc) delete r.noCalc[sl.lv]; // ギルド割当を外したら牽制フラグも一緒に外す
-      save();render();});}));
+      touchRow(r);});}));
     // 牽制のみ（門は塗るが実際には入場しない）：予定表には表示するが、報酬計算からは除外する
     const dc=document.createElement('input'); dc.type='checkbox';
     dc.checked=!!(r.noCalc&&r.noCalc[sl.lv]); dc.disabled=!cur;
     const dl=el('<label class="small" style="display:flex;align-items:center;gap:4px;flex:0 0 100%;margin:2px 0 0 102px;opacity:'+(cur?'1':'.5')+'">'+T('decoy')+'</label>');
     dl.prepend(dc);
-    dc.onchange=()=>{r.noCalc=r.noCalc||{}; if(dc.checked) r.noCalc[sl.lv]=true; else delete r.noCalc[sl.lv]; save();render();};
+    dc.onchange=()=>{r.noCalc=r.noCalc||{}; if(dc.checked) r.noCalc[sl.lv]=true; else delete r.noCalc[sl.lv]; touchRow(r);};
     s.appendChild(dl);
     card.appendChild(s);
   });
@@ -632,10 +636,10 @@ function rowCard(B,r,idx){
   const exw=el('<div style="flex:1"></div>');
   (r.ex||[]).forEach((g,i)=>{
     const p=el('<span class="pill"><i style="background:'+gcolor(g)+'"></i>'+g+'<button>✕</button></span>');
-    p.querySelector('button').onclick=()=>{r.ex.splice(i,1);save();render();};
+    p.querySelector('button').onclick=()=>{r.ex.splice(i,1);touchRow(r);};
     exw.appendChild(p);
   });
-  const add=guildSelect('',v=>{if(!v)return;tryAssign(r,v,'',val=>{r.ex=r.ex||[];if(!r.ex.includes(val))r.ex.push(val);save();render();});});
+  const add=guildSelect('',v=>{if(!v)return;tryAssign(r,v,'',val=>{r.ex=r.ex||[];if(!r.ex.includes(val))r.ex.push(val);touchRow(r);});});
   exw.appendChild(add); ex.appendChild(exw); card.appendChild(ex);
 
   // 結果スクショ添付（任意・順位修正の目安用。自動で数値には反映されません）
@@ -647,7 +651,7 @@ function rowCard(B,r,idx){
     th.onclick=()=>window.open(r.shot,'_blank');
     shotWrap.appendChild(th);
     shotWrap.appendChild(el('<div class="small" style="color:var(--ok);margin-bottom:4px">✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付済み')+'</div>'));
-    const rm=el('<button class="b d">✕</button>'); rm.onclick=()=>{r.shot='';save();render();};
+    const rm=el('<button class="b d">✕</button>'); rm.onclick=()=>{r.shot='';touchRow(r);};
     shotWrap.appendChild(rm);
   } else {
     const stEl=el('<div class="small muted" style="margin-bottom:4px"></div>');
@@ -659,7 +663,7 @@ function rowCard(B,r,idx){
         const mw=900, sc=Math.min(1,mw/img.width);
         const cv=document.createElement('canvas'); cv.width=img.width*sc; cv.height=img.height*sc;
         cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-        r.shot=cv.toDataURL('image/jpeg',0.7); save(); render();
+        r.shot=cv.toDataURL('image/jpeg',0.7); touchRow(r);
         toast('✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付しました'));
       });
     };
@@ -723,14 +727,14 @@ function rowCard(B,r,idx){
       const tr=document.createElement('tr');
       const rkTd=document.createElement('td');
       if(ov){
-        rkTd.appendChild(rankSelect(ov.rk,v=>{ ov.rk=v; ov.w=reward(c.lv,v).slice(); r.rewardOverride[g]=ov; save(); render(); }));
+        rkTd.appendChild(rankSelect(ov.rk,v=>{ ov.rk=v; ov.w=reward(c.lv,v).slice(); r.rewardOverride[g]=ov; touchRow(r); }));
       } else {
         rkTd.textContent = rk>=5?T('place5'):rk+'位';
       }
       tr.appendChild(rkTd);
       tr.appendChild(el('<td>'+g+'</td>'));
       if(ov){
-        rewardCells(tr, ov.w, (k,v)=>{ ov.w[k]=v; r.rewardOverride[g]=ov; save(); render(); });
+        rewardCells(tr, ov.w, (k,v)=>{ ov.w[k]=v; r.rewardOverride[g]=ov; touchRow(r); });
       } else {
         [0,1,2].forEach(k=>{ tr.appendChild(el('<td class="num">'+computed[k]+'</td>')); });
       }
@@ -740,7 +744,7 @@ function rowCard(B,r,idx){
       ovChk.onchange=()=>{
         r.rewardOverride=r.rewardOverride||{};
         if(ovChk.checked){ r.rewardOverride[g]={rk:rk,w:computed.slice()}; } else { delete r.rewardOverride[g]; }
-        save(); render();
+        touchRow(r);
       };
       ovLab.appendChild(ovChk); ovLab.appendChild(document.createTextNode(T('rewardOverride')));
       ovTd.appendChild(ovLab); tr.appendChild(ovTd);
@@ -751,13 +755,13 @@ function rowCard(B,r,idx){
     r.extra.forEach((e,i)=>{
       const tr=document.createElement('tr');
       const rkTd=document.createElement('td');
-      rkTd.appendChild(rankSelect(e.rk,v=>{ e.rk=v; e.w=reward(c.lv,v).slice(); save(); render(); }));
+      rkTd.appendChild(rankSelect(e.rk,v=>{ e.rk=v; e.w=reward(c.lv,v).slice(); touchRow(r); }));
       tr.appendChild(rkTd);
       tr.appendChild(el('<td>'+e.g+'</td>'));
-      rewardCells(tr, e.w, (k,v)=>{ e.w[k]=v; save(); render(); });
+      rewardCells(tr, e.w, (k,v)=>{ e.w[k]=v; touchRow(r); });
       const rmTd=document.createElement('td');
       const rm=el('<button class="b d">✕</button>');
-      rm.onclick=()=>{ r.extra.splice(i,1); save(); render(); };
+      rm.onclick=()=>{ r.extra.splice(i,1); touchRow(r); };
       rmTd.appendChild(rm); tr.appendChild(rmTd);
       table.appendChild(tr);
     });
@@ -773,10 +777,26 @@ function rowCard(B,r,idx){
     if(!v)return;
     if(guildsOrdered.includes(v) || r.extra.some(e=>e.g===v)){ alert(T('alreadyListed')); return; }
     r.extra.push({g:v, rk:1, w:reward(c.lv,1).slice()});
-    save(); render();
+    touchRow(r);
   });
   addRow.appendChild(addSel);
   card.appendChild(addRow);
+
+  // 送信確認：このボタンを押すまでサーバーには送信されない（自動送信はしない）
+  const syncRow=el('<div class="row" style="justify-content:flex-end;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap"></div>');
+  if(!r.synced){
+    syncRow.appendChild(el('<span class="small" style="color:#B8860B;font-weight:700">⚠ '+
+      (S.lang==='zh'?'尚未送出・這個按鈕沒按的話不會同步':S.lang==='ko'?'아직 전송 안 됨・이 버튼을 눌러야 동기화됩니다':'まだ送信されていません・このボタンを押さないと同期されません')+
+      '</span>'));
+  }
+  const okBtn=el('<button class="b" style="background:#FFD23F;border-color:#E0B400;color:#3a2f00;font-weight:800;'+
+    (r.synced?'opacity:.55;':'')+'">'+
+    (r.synced?('✓ '+(S.lang==='zh'?'已送出':S.lang==='ko'?'전송됨':'送信済み'))
+             :(S.lang==='zh'?'這樣可以了（送出）':S.lang==='ko'?'이걸로 완료（전송）':'これでOK（送信）'))+
+    '</button>');
+  okBtn.onclick=()=>{ r.synced=true; save(); render(); doPush(true); };
+  syncRow.appendChild(okBtn);
+  card.appendChild(syncRow);
 
   return card;
 }
@@ -1061,8 +1081,6 @@ function autofill(){ // 3体わかっていれば4体目を推定。位置未記
 }
 
 /* ---------- 同期（Functions経由） ---------- */
-let pt=null, dirty=false;
-function schedulePush(){dirty=true;clearTimeout(pt);pt=setTimeout(()=>doPush(false),1500);}
 function st(m){const e=document.getElementById('syncst');if(e)e.textContent=m;}
 async function doPull(loud){
   try{
@@ -1079,7 +1097,6 @@ async function doPush(loud){
   try{
     const r=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
     if(!r.ok)throw new Error(r.status);
-    dirty=false;
     st('⬆ '+new Date().toLocaleTimeString()); if(loud)toast('⬆ OK');
   }catch(e){st('⬆ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
 }
@@ -1339,8 +1356,8 @@ doPull(false).then(()=>{
   }
 });
 // 自分が今編集していない間だけ、20秒ごとに自動で最新を受信する（台帳データ＋門配置データの両方）
-setInterval(()=>{if(!dirty&&!document.hidden){doPull(false);pullGateMapLive(false);}},20000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!dirty){doPull(false);pullGateMapLive(false);}});
+setInterval(()=>{if(!document.hidden){doPull(false);pullGateMapLive(false);}},20000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){doPull(false);pullGateMapLive(false);}});
 </script>
 </body>
 </html>
