@@ -109,7 +109,8 @@ const L = {
   presetPick:'プリセットを選ぶ',presetSave:'プリセットに保存',presetNamePrompt:'プリセット名（例：プリセット1）',
   presetOverwrite:'」を今の顔ぶれで上書きしますか？',presetManage:'ギルド顔ぶれプリセット',presetEmpty:'まだプリセットがありません。',presetGuildsCount:'ギルド',
   rewardOverride:'報酬を上書き',rewardOverrideNote:'⚠ このギルドの報酬は、実際の城内で起きたハプニング等により手動で上書きされています（門配置・担当ギルドは変更していません）',
-  sumFilter:'表示するギルドを選ぶ',selectAll:'すべて選択',selectNone:'すべて解除'},
+  sumFilter:'表示するギルドを選ぶ',selectAll:'すべて選択',selectNone:'すべて解除',
+  addExtraResult:'＋ 門配置にいないギルドを実際の結果として追加（乱入してきた敵ギルドなど）',alreadyListed:'すでに一覧にあります'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -134,7 +135,8 @@ const L = {
   presetPick:'選擇預設組合',presetSave:'儲存為預設組合',presetNamePrompt:'預設組合名稱（例：預設1）',
   presetOverwrite:'」要用目前的名單覆蓋嗎？',presetManage:'公會名單預設組合',presetEmpty:'尚無預設組合。',presetGuildsCount:'個公會',
   rewardOverride:'覆蓋獎勵',rewardOverrideNote:'⚠ 此公會的獎勵因實際攻城中發生的突發狀況而手動覆蓋（門配置・負責公會並未變更）',
-  sumFilter:'選擇要顯示的公會',selectAll:'全部選取',selectNone:'全部取消'},
+  sumFilter:'選擇要顯示的公會',selectAll:'全部選取',selectNone:'全部取消',
+  addExtraResult:'＋ 將不在門配置中的公會加入實際結果（例如闖入的敵對公會）',alreadyListed:'已經在清單中'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -159,7 +161,8 @@ const L = {
   presetPick:'프리셋 선택',presetSave:'프리셋으로 저장',presetNamePrompt:'프리셋 이름（예：프리셋1）',
   presetOverwrite:'」을 지금 구성으로 덮어쓸까요？',presetManage:'길드 구성 프리셋',presetEmpty:'아직 프리셋이 없습니다.',presetGuildsCount:'개 길드',
   rewardOverride:'보상 덮어쓰기',rewardOverrideNote:'⚠ 이 길드의 보상은 실제 성전 중 발생한 돌발 상황으로 인해 수동으로 덮어쓴 것입니다（문 배치・담당 길드는 변경하지 않았습니다）',
-  sumFilter:'표시할 길드 선택',selectAll:'모두 선택',selectNone:'모두 해제'}
+  sumFilter:'표시할 길드 선택',selectAll:'모두 선택',selectNone:'모두 해제',
+  addExtraResult:'＋ 문 배치에 없는 길드를 실제 결과로 추가（난입한 적 길드 등）',alreadyListed:'이미 목록에 있습니다'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -251,6 +254,21 @@ function guildSelect(val,onch){
   };
   return s;
 }
+// 実際の結果（順位）を手動指定するためのプルダウン。1〜4位＋5位以下の5択
+function rankSelect(cur,onPick){
+  const s=document.createElement('select');
+  [1,2,3,4,5].forEach(n=>s.appendChild(new Option(T('place'+n),n)));
+  s.value=String(Math.min(cur||1,5));
+  s.onchange=()=>onPick(+s.value);
+  return s;
+}
+// r.rewardOverrideは{rk,w}形式で保存するが、以前のバージョンで平配列[boxp,box,ticket]として
+// 保存されたデータも読めるように正規化する
+function normOv(ov,fallbackRk){
+  if(!ov) return null;
+  if(Array.isArray(ov)) return {rk:fallbackRk,w:ov};
+  return ov;
+}
 
 /* ---------- 英霊枠 ---------- */
 function slots(j){
@@ -333,8 +351,14 @@ function tally(){
       const clv=(CITY[r.c]||{}).lv||1;
       const ranks=computeRanks(r);
       Object.keys(ranks).forEach(g=>{
-        const rk=ranks[g], ov=(r.rewardOverride||{})[g], rw=ov||reward(clv,rk), o=get(g);
-        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[Math.min(rk,5)-1]++;
+        const rk=ranks[g], ov=normOv((r.rewardOverride||{})[g],rk);
+        const effRk=ov?ov.rk:rk, rw=ov?ov.w:reward(clv,rk), o=get(g);
+        o.bp+=rw[0];o.bx+=rw[1];o.tk+=rw[2];o.r[Math.min(effRk,5)-1]++;
+      });
+      // 門配置に関係なく実際に結果を得たギルド（敵ギルドの乱入など）を手動で追加した分
+      (r.extra||[]).forEach(e=>{
+        const o=get(e.g);
+        o.bp+=e.w[0];o.bx+=e.w[1];o.tk+=e.w[2];o.r[Math.min(e.rk,5)-1]++;
       });
     });
   });
@@ -353,6 +377,33 @@ function render(){
     b.className=t===tab?'on':'';b.onclick=()=>{tab=t;render();window.scrollTo(0,0);};nav.appendChild(b);});
   TABS.forEach(t=>{const el=document.getElementById('pane-'+t);el.style.display=t===tab?'':'none';el.innerHTML='';});
   ({plan:renderPlan,sum:renderSum,castle:renderCastle,data:renderData})[tab]();
+  updatePvPanel();
+}
+function ensurePvPanel(){
+  if(document.getElementById('pvPanel')) return;
+  const p=document.createElement('div');
+  p.id='pvPanel';
+  p.style.cssText='display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:60;background:#fff;border:2px solid #4a90d9;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.3);padding:6px 8px 8px;max-height:50vh;overflow:auto';
+  document.body.appendChild(p);
+}
+function updatePvPanel(){
+  ensurePvPanel();
+  const p=document.getElementById('pvPanel');
+  const B = (tab==='plan' && pvBattleId) ? S.battles.find(b=>b.id===pvBattleId) : null;
+  if(!B){ p.style.display='none'; p.innerHTML=''; return; }
+  p.innerHTML='';
+  const head=el('<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:4px"></div>');
+  head.appendChild(el('<b class="small">👁 '+(S.lang==='zh'?'即時預覽':S.lang==='ko'?'실시간 미리보기':'リアルタイムプレビュー')+'（'+(B.date||'----')+'）</b>'));
+  const closeBtn=el('<button class="b" style="padding:2px 8px">✕</button>');
+  closeBtn.onclick=()=>{pvBattleId=null; render();};
+  head.appendChild(closeBtn);
+  p.appendChild(head);
+  const cv2=document.createElement('canvas');
+  cv2.style.cssText='max-width:100%;max-height:40vh;width:auto;height:auto;display:block;border:1px solid #ddd;border-radius:6px;margin:0 auto';
+  drawEntryCanvas([B],cv2);
+  p.appendChild(cv2);
+  p.appendChild(el('<div class="muted small" style="margin-top:4px">'+(S.lang==='zh'?'僅供確認版面用，不會自動存檔。想要儲存圖片請按上面的「入場表」按鈕':S.lang==='ko'?'레이아웃 확인용이며 자동 저장되지 않습니다. 이미지로 저장하려면 위의 "입장표" 버튼을 누르세요':'レイアウト確認用です。自動保存はされません。画像として保存したい時は上の「入場表」ボタンを押してください')+'</div>'));
+  p.style.display='';
 }
 function el(h){const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;}
 
@@ -369,7 +420,7 @@ function provPills(activeIdx,onPick){
 }
 
 /* --- 予定（城戦ごとにアコーディオン） --- */
-let expanded=new Set(), openProv={};
+let expanded=new Set(), openProv={}, pvBattleId=null;
 function curBattle(){return S.battles.find(b=>b.id===S.cur)||null;}
 function authorList(){return [...new Set(S.battles.map(b=>b.author).filter(Boolean))].sort();}
 function renderPlan(){
@@ -453,6 +504,10 @@ function battleCard(B){
   rd.appendChild(dl);
   const pg1=el('<button class="b g">'+(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表')+'</button>'); pg1.onclick=()=>exportPNG([B]); rd.appendChild(pg1);
   const pg2=el('<button class="b g">'+(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図')+'</button>'); pg2.onclick=()=>exportGatePNG([B]); rd.appendChild(pg2);
+  const pvOn=pvBattleId===B.id;
+  const pvBtn=el('<button class="b'+(pvOn?' p':'')+'">👁 '+(S.lang==='zh'?(pvOn?'停止預覽':'即時預覽'):S.lang==='ko'?(pvOn?'미리보기 끄기':'실시간 미리보기'):(pvOn?'プレビューを閉じる':'リアルタイムプレビュー'))+'</button>');
+  pvBtn.onclick=()=>{ pvBattleId = pvOn ? null : B.id; render(); };
+  rd.appendChild(pvBtn);
   c2.appendChild(rd);
 
   // この日に入るはずのギルドを選ぶ（任意）。選んでも選ばなくても入力自体には影響しない
@@ -525,8 +580,11 @@ function rowCard(B,r,idx){
   h.appendChild(x); card.appendChild(h);
 
   if(!complete(r.c)) card.appendChild(el('<div class="warnbox">⚠ '+T('incomplete')+'</div>'));
-  if(r.rewardOverride && Object.keys(r.rewardOverride).length){
-    card.appendChild(el('<div class="warnbox">'+T('rewardOverrideNote')+'：'+Object.keys(r.rewardOverride).join('、')+'</div>'));
+  {
+    const ovNames=[...Object.keys(r.rewardOverride||{}), ...((r.extra||[]).map(e=>e.g))];
+    if(ovNames.length){
+      card.appendChild(el('<div class="warnbox">'+T('rewardOverrideNote')+'：'+ovNames.join('、')+'</div>'));
+    }
   }
 
   const oc=el('<div class="slot"></div>');
@@ -623,45 +681,87 @@ function rowCard(B,r,idx){
 
   // この城の報酬プレビュー（占拠ギルド＝1位、以下Lvの高い順）。
   // 通常は門配置から自動計算するが、実際の城内でハプニングが起きて結果が変わった稀なケース用に、
-  // 門配置・担当ギルドはそのまま、報酬の数字だけをギルドごとに手動で上書きできるようにする
+  // 門配置・担当ギルドはそのまま、①既存ギルドの順位・報酬を上書き ②門配置に出てこないギルド
+  // （乱入してきた敵ギルドなど）を実際の結果として追加、の両方ができるようにする
   const ranks=computeRanks(r);
   const guildsOrdered=Object.keys(ranks).sort((a,b)=>ranks[a]-ranks[b]);
-  if(guildsOrdered.length){
+  r.extra=r.extra||[];
+  if(guildsOrdered.length || r.extra.length){
     const wrap=el('<div class="scroll" style="margin-top:8px"></div>');
     const table=document.createElement('table');
     table.appendChild(el('<tr><th>'+T('rank')+'</th><th>'+T('guild')+'</th><th class="num">'+T('boxp')+'</th><th class="num">'+T('box')+'</th><th class="num">'+T('ticket')+'</th><th></th></tr>'));
-    guildsOrdered.forEach(g=>{
-      const rk=ranks[g], computed=reward(c.lv,rk);
-      const ov=(r.rewardOverride||{})[g];
-      const tr=document.createElement('tr');
-      tr.appendChild(el('<td>'+(rk>=5?T('place5'):rk+'位')+'</td>'));
-      tr.appendChild(el('<td>'+g+'</td>'));
-      const vals=ov||computed;
+
+    const rewardCells=(tr,w,onEdit)=>{
       [0,1,2].forEach(k=>{
         const td=document.createElement('td'); td.className='num';
-        if(ov){
-          const inp=document.createElement('input'); inp.type='number'; inp.style.width='56px'; inp.value=vals[k];
-          inp.onchange=()=>{ r.rewardOverride=r.rewardOverride||{}; r.rewardOverride[g]=(r.rewardOverride[g]||computed.slice());
-            r.rewardOverride[g][k]=+inp.value||0; save(); render(); };
-          td.appendChild(inp);
-        } else { td.textContent=vals[k]; }
+        const inp=document.createElement('input'); inp.type='number'; inp.style.width='56px'; inp.value=w[k];
+        inp.onchange=()=>{ onEdit(k,+inp.value||0); };
+        td.appendChild(inp);
         tr.appendChild(td);
       });
+    };
+
+    guildsOrdered.forEach(g=>{
+      const rk=ranks[g], computed=reward(c.lv,rk);
+      const ov=normOv((r.rewardOverride||{})[g],rk);
+      const tr=document.createElement('tr');
+      const rkTd=document.createElement('td');
+      if(ov){
+        rkTd.appendChild(rankSelect(ov.rk,v=>{ ov.rk=v; ov.w=reward(c.lv,v).slice(); r.rewardOverride[g]=ov; save(); render(); }));
+      } else {
+        rkTd.textContent = rk>=5?T('place5'):rk+'位';
+      }
+      tr.appendChild(rkTd);
+      tr.appendChild(el('<td>'+g+'</td>'));
+      if(ov){
+        rewardCells(tr, ov.w, (k,v)=>{ ov.w[k]=v; r.rewardOverride[g]=ov; save(); render(); });
+      } else {
+        [0,1,2].forEach(k=>{ tr.appendChild(el('<td class="num">'+computed[k]+'</td>')); });
+      }
       const ovTd=document.createElement('td');
       const ovLab=el('<label class="small" style="display:flex;align-items:center;gap:3px;white-space:nowrap"></label>');
       const ovChk=document.createElement('input'); ovChk.type='checkbox'; ovChk.checked=!!ov;
       ovChk.onchange=()=>{
         r.rewardOverride=r.rewardOverride||{};
-        if(ovChk.checked){ r.rewardOverride[g]=computed.slice(); } else { delete r.rewardOverride[g]; }
+        if(ovChk.checked){ r.rewardOverride[g]={rk:rk,w:computed.slice()}; } else { delete r.rewardOverride[g]; }
         save(); render();
       };
       ovLab.appendChild(ovChk); ovLab.appendChild(document.createTextNode(T('rewardOverride')));
       ovTd.appendChild(ovLab); tr.appendChild(ovTd);
       table.appendChild(tr);
     });
+
+    // 門配置には出てこないが、実際には結果に絡んできたギルド（乱入してきた敵ギルドなど）
+    r.extra.forEach((e,i)=>{
+      const tr=document.createElement('tr');
+      const rkTd=document.createElement('td');
+      rkTd.appendChild(rankSelect(e.rk,v=>{ e.rk=v; e.w=reward(c.lv,v).slice(); save(); render(); }));
+      tr.appendChild(rkTd);
+      tr.appendChild(el('<td>'+e.g+'</td>'));
+      rewardCells(tr, e.w, (k,v)=>{ e.w[k]=v; save(); render(); });
+      const rmTd=document.createElement('td');
+      const rm=el('<button class="b d">✕</button>');
+      rm.onclick=()=>{ r.extra.splice(i,1); save(); render(); };
+      rmTd.appendChild(rm); tr.appendChild(rmTd);
+      table.appendChild(tr);
+    });
+
     wrap.appendChild(table);
     card.appendChild(wrap);
   }
+
+  // 門配置にいないギルドを、実際の結果として新しく追加するための行
+  const addRow=el('<div class="row" style="margin-top:6px;align-items:center"></div>');
+  addRow.appendChild(el('<span class="muted small" style="margin-right:4px">'+T('addExtraResult')+'</span>'));
+  const addSel=guildSelect('',v=>{
+    if(!v)return;
+    if(guildsOrdered.includes(v) || r.extra.some(e=>e.g===v)){ alert(T('alreadyListed')); return; }
+    r.extra.push({g:v, rk:1, w:reward(c.lv,1).slice()});
+    save(); render();
+  });
+  addRow.appendChild(addSel);
+  card.appendChild(addRow);
+
   return card;
 }
 
@@ -718,8 +818,9 @@ function renderSum(){
     // 以前はここだけ別の簡易計算（Lvから順位を逆算）をしていて、合計タブの数字とズレる原因になっていた
     bt.rows.forEach(r=>{const clv=(CITY[r.c]||{}).lv||1;
       const ranks=computeRanks(r);
-      Object.keys(ranks).forEach(g=>{const ov=(r.rewardOverride||{})[g], w=ov||reward(clv,ranks[g]);
-        m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});});
+      Object.keys(ranks).forEach(g=>{const ov=normOv((r.rewardOverride||{})[g],ranks[g]), w=ov?ov.w:reward(clv,ranks[g]);
+        m[g]=m[g]||[0,0,0];m[g][0]+=w[0];m[g][1]+=w[1];m[g][2]+=w[2];});
+      (r.extra||[]).forEach(e=>{ m[e.g]=m[e.g]||[0,0,0]; m[e.g][0]+=e.w[0]; m[e.g][1]+=e.w[1]; m[e.g][2]+=e.w[2]; });});
     const ks=Object.keys(m).filter(g=>!hidden.has(g)).sort((x,y)=>m[y][2]-m[x][2]);
     b+='<div class="sep"></div><div class="small"><b>'+(bt.date||'----')+'</b>（'+bt.rows.length+'）</div>';
     if(!ks.length){b+='<div class="muted small">'+T('noData')+'</div>';}
@@ -982,15 +1083,24 @@ async function pullGateMapLive(loud){
 /* ---------- PNG出力（入場予定表） ---------- */
 // battles: 城戦の配列（1件でも複数でもOK）。複数日をまとめる場合は日付ごとに区切り帯を挟む
 function exportPNG(battles){
+  const cv=document.getElementById('cv');
+  const titleTxt=drawEntryCanvas(battles,cv);
+  if(titleTxt===null){alert(T('noData'));return;}
+  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'.png';a.click();});
+}
+// battles を指定の canvas 要素に描画する。データが無ければ null を返す（呼び出し側で noData 表示など判断）。
+// プレビュー用・保存用のどちらにも使う共通ロジック。
+function drawEntryCanvas(battles,cv){
   const flat=[]; // {date, r}
   battles.forEach(B=>B.rows.forEach(r=>flat.push({date:B.date,r})));
-  if(!flat.length){alert(T('noData'));return;}
+  if(!flat.length){return null;}
   const multiDate = new Set(battles.map(b=>b.date)).size>1;
   const hasDecoy = flat.some(({r})=>r.noCalc && Object.keys(r.noCalc).some(lv=>r.noCalc[lv] && (r.a||{})[lv]));
   const dpr=2, W=1620, RH=124, HH=150, GH=52, PAD=12, TT=44, NOTE=hasDecoy?76:0;
   const groupCount = multiDate ? battles.length : 0;
   const H = TT + HH + RH*flat.length + GH*groupCount + PAD*2 + NOTE;
-  const cv=document.getElementById('cv'); cv.width=W*dpr; cv.height=H*dpr;
+  cv.width=W*dpr; cv.height=H*dpr;
   const x=cv.getContext('2d'); x.scale(dpr,dpr);
   x.fillStyle='#fff'; x.fillRect(0,0,W,H);
   const F=(s,w)=>{x.font=(w||'')+' '+s+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';};
@@ -1043,8 +1153,7 @@ function exportPNG(battles){
     x.fillStyle='#8A7D6E'; x.textAlign='left'; x.textBaseline='top';
     [L.zh.decoyNote,L.ja.decoyNote,L.ko.decoyNote].forEach((t,i)=>x.fillText(t, PAD, y+8+i*22));
   }
-  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
-    a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'.png';a.click();});
+  return titleTxt;
 }
 
 /* ---------- PNG出力（門配置＋担当ギルド図） ---------- */
