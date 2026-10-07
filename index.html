@@ -30,11 +30,11 @@ main{padding:12px 12px 90px}
 .card h2{font-size:14px;margin:0 0 8px}
 .muted{color:var(--sub);font-size:12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-button.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--ink)}
-button.p{background:var(--accent);border-color:var(--accent);color:#fff}
-button.g{background:var(--accent2);border-color:var(--accent2);color:#1f3350}
-button.d{background:#fff;border-color:var(--bad);color:var(--bad)}
-button.b:active{transform:translateY(1px)}
+button.b,label.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;display:inline-block}
+button.p,label.p{background:var(--accent);border-color:var(--accent);color:#fff}
+button.g,label.g{background:var(--accent2);border-color:var(--accent2);color:#1f3350}
+button.d,label.d{background:#fff;border-color:var(--bad);color:var(--bad)}
+button.b:active,label.b:active{transform:translateY(1px)}
 input,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:#fff;color:var(--ink);max-width:100%}
 input[type=date]{min-width:150px}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -401,7 +401,7 @@ function updatePvPanel(){
   if(!B){ p.style.display='none'; p.innerHTML=''; return; }
   p.innerHTML='';
   const head=el('<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:4px"></div>');
-  head.appendChild(el('<b class="small">👁 '+(S.lang==='zh'?'即時預覽':S.lang==='ko'?'실시간 미리보기':'リアルタイムプレビュー')+'（'+(B.date||'----')+'）</b>'));
+  head.appendChild(el('<b class="small">👁 '+(S.lang==='zh'?'入場表預覽':S.lang==='ko'?'입장표 미리보기':'入場表のプレビュー')+'（'+(B.date||'----')+'）</b>'));
   const closeBtn=el('<button class="b" style="padding:2px 8px">✕</button>');
   closeBtn.onclick=()=>{pvBattleId=null; render();};
   head.appendChild(closeBtn);
@@ -513,7 +513,7 @@ function battleCard(B){
   const pg1=el('<button class="b g">'+(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表')+'</button>'); pg1.onclick=()=>exportPNG([B]); rd.appendChild(pg1);
   const pg2=el('<button class="b g">'+(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図')+'</button>'); pg2.onclick=()=>exportGatePNG([B]); rd.appendChild(pg2);
   const pvOn=pvBattleId===B.id;
-  const pvBtn=el('<button class="b'+(pvOn?' p':'')+'">👁 '+(S.lang==='zh'?(pvOn?'停止預覽':'即時預覽'):S.lang==='ko'?(pvOn?'미리보기 끄기':'실시간 미리보기'):(pvOn?'プレビューを閉じる':'リアルタイムプレビュー'))+'</button>');
+  const pvBtn=el('<button class="b'+(pvOn?' p':'')+'">👁 '+(S.lang==='zh'?(pvOn?'停止預覽':'入場表預覽'):S.lang==='ko'?(pvOn?'미리보기 끄기':'입장표 미리보기'):(pvOn?'プレビューを閉じる':'入場表のプレビュー'))+'</button>');
   pvBtn.onclick=()=>{ pvBattleId = pvOn ? null : B.id; render(); };
   rd.appendChild(pvBtn);
   c2.appendChild(rd);
@@ -605,7 +605,8 @@ function rowCard(B,r,idx){
   const x=el('<button class="b d">✕</button>');
   x.onclick=()=>{B.rows.splice(idx,1);save();render();};
   btns.appendChild(x);
-  const arrow=el('<button class="b" style="padding:2px 8px">'+(isOpen?'▾':'▸')+'</button>');
+  const arrow=el('<button class="b" style="padding:2px 10px;background:#4a90d9;border-color:#3a74ad;color:#fff;font-weight:700">'+
+    (isOpen?(S.lang==='zh'?'▾ 收合':S.lang==='ko'?'▾ 접기':'▾ たたむ'):(S.lang==='zh'?'▸ 展開':S.lang==='ko'?'▸ 펼치기':'▸ ひらく'))+'</button>');
   arrow.onclick=toggle;
   btns.appendChild(arrow);
   h.appendChild(btns); card.appendChild(h);
@@ -807,7 +808,7 @@ function rowCard(B,r,idx){
     (r.synced?('✓ '+(S.lang==='zh'?'已送出':S.lang==='ko'?'전송됨':'送信済み'))
              :(S.lang==='zh'?'這樣可以了（送出）':S.lang==='ko'?'이걸로 완료（전송）':'これでOK（送信）'))+
     '</button>');
-  okBtn.onclick=()=>{ r.synced=true; save(); render(); doPush(true); };
+  okBtn.onclick=()=>{ r.synced=true; save(); render(); pushRow(B,r); };
   syncRow.appendChild(okBtn);
   card.appendChild(syncRow);
 
@@ -851,14 +852,18 @@ function renderSum(){
   P.appendChild(fc);
 
   const tv=t.filter(o=>!hidden.has(o.n));
-  let h='<div class="card"><h2>'+T('total')+'</h2><div class="scroll"><table><tr><th>'+T('guild')+
+  let h='<div class="card"><h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>'+T('total')+
+    '</span><button id="sumPngBtn" class="b" style="font-size:12px;padding:4px 10px;font-weight:700">🖼 '+
+    (S.lang==='zh'?'匯出圖片':S.lang==='ko'?'이미지로 저장':'画像で保存')+'</button></h2><div class="scroll"><table><tr><th>'+T('guild')+
     '</th><th class="num">'+T('boxp')+'</th><th class="num">'+T('box')+'</th><th class="num">'+T('ticket')+
     '</th><th class="num">'+(S.lang==='zh'?'名次次數(1/2/3/4/5+)':S.lang==='ko'?'순위 횟수(1/2/3/4/5+)':'順位の回数(1位/2位/3位/4位/5位+)')+'</th></tr>';
   tv.forEach(o=>{h+='<tr><td><span class="chip" style="background:'+gcolor(o.n)+'">'+o.n+'</span></td>'+
     '<td class="num">'+o.bp+'</td><td class="num">'+o.bx+'</td><td class="num">'+o.tk+'</td>'+
     '<td class="num small">'+o.r.join('/')+'</td></tr>';});
   h+='</table></div></div>';
-  P.appendChild(el(h));
+  const totalCard=el(h);
+  P.appendChild(totalCard);
+  totalCard.querySelector('#sumPngBtn').onclick=()=>exportSumPNG(tv);
 
   let b='<div class="card"><h2>'+T('breakdown')+'</h2>';
   S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(bt=>{
@@ -1113,6 +1118,54 @@ async function doPush(loud){
     st('⬆ '+new Date().toLocaleTimeString()); if(loud)toast('⬆ OK');
   }catch(e){st('⬆ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
 }
+// 「これでOK」ボタン専用：この1城（1行）の内容だけを、送信する直前に取得し直した最新のサーバー内容に
+// 差し込んでから送信する。doPush()と違って今の画面のS全体をそのまま送るわけではないので、
+// 自分の画面がたまたま他の城・他の日について古くても、そこを巻き込んで上書きしてしまうことがない。
+function mergeRowIntoRemote(remote,B,r){
+  const base=(remote&&typeof remote==='object')?JSON.parse(JSON.stringify(remote)):{};
+  base.lang=S.lang; base.cur=S.cur;
+  base.battles=Array.isArray(base.battles)?base.battles:[];
+  base.guilds=Array.isArray(base.guilds)?base.guilds:[];
+  base.rewards=base.rewards||S.rewards;
+  base.boss=base.boss||S.boss;
+  base.expectPresets=Array.isArray(base.expectPresets)?base.expectPresets:(S.expectPresets||[]);
+  base.sumHiddenGuilds=Array.isArray(base.sumHiddenGuilds)?base.sumHiddenGuilds:(S.sumHiddenGuilds||[]);
+  // ギルド一覧：自分の画面にしかない新しいギルドだけ追加する（既存分の並び・色はサーバー側を尊重）
+  (S.guilds||[]).forEach(g=>{ if(!base.guilds.some(x=>x.n===g.n)) base.guilds.push(g); });
+  // この城戦日（battle）がサーバーにまだ無ければ丸ごと追加。あれば「このOKを押した城（行）」だけ差し替える
+  const bi=base.battles.findIndex(x=>x.id===B.id);
+  if(bi<0){
+    base.battles.push(JSON.parse(JSON.stringify(B)));
+  } else {
+    const rb=base.battles[bi];
+    rb.date=B.date; rb.author=B.author; rb.chk=B.chk; rb.expect=B.expect;
+    rb.rows=Array.isArray(rb.rows)?rb.rows:[];
+    const ri=rb.rows.findIndex(x=>x.id===r.id);
+    const rowCopy=JSON.parse(JSON.stringify(r));
+    if(ri<0) rb.rows.push(rowCopy); else rb.rows[ri]=rowCopy;
+  }
+  base.u=Date.now();
+  return base;
+}
+async function pushRow(B,r){
+  try{
+    const resp=await fetch('/api/sync',{cache:'no-store'});
+    if(!resp.ok)throw new Error(resp.status);
+    const remote=await resp.json();
+    const merged=mergeRowIntoRemote(remote,B,r);
+    const pr=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(merged)});
+    if(!pr.ok)throw new Error(pr.status);
+    Object.assign(S,merged);
+    try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+    st('⬆ '+new Date().toLocaleTimeString()); toast('⬆ OK');
+    render();
+  }catch(e){
+    st('⬆ ✕ '+e.message);
+    alert((S.lang==='zh'?'無法取得最新伺服器內容，已取消送出（這個城的資料還在您的畫面裡，請再按一次）：':
+           S.lang==='ko'?'최신 서버 내용을 가져오지 못해 전송을 취소했습니다（이 성의 데이터는 화면에 남아있습니다, 다시 눌러주세요）：':
+           '最新のサーバー内容が取得できなかったので送信を中止しました（この城のデータは画面に残っているので、もう一度押してください）：')+e.message);
+  }
+}
 function gmst(m){const e=document.getElementById('gmst');if(e)e.textContent=m;}
 // Gate Mapのデータを読み取り専用で取り込む（既存のimportGateMapロジックを再利用。書き込みは一切しない）
 async function pullGateMapLive(loud){
@@ -1124,6 +1177,72 @@ async function pullGateMapLive(loud){
     else if(loud) toast('⬇ —');
     gmst('⬇ '+new Date().toLocaleTimeString());
   }catch(e){ gmst('⬇ ✕ '+e.message); if(loud) alert('gatemap sync error: '+e.message); }
+}
+
+/* ---------- PNG出力（集計タブの合計表） ---------- */
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+// tv：集計タブの絞り込み（表示するギルドのチェック）が反映された後の配列をそのまま渡す
+function drawSumCanvas(tv,cv){
+  if(!tv.length) return null;
+  const dpr=2, PAD=16, TT=44, HH=40, RH=48;
+  const nameW=220, numW=90, rankW=260;
+  const W=PAD*2+nameW+numW*3+rankW;
+  const H=TT+HH+RH*tv.length+PAD*2;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const x=cv.getContext('2d'); x.scale(dpr,dpr);
+  x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  const F=(s,w)=>{x.font=(w||'')+' '+s+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';};
+  F(24,'bold'); x.fillStyle='#222'; x.textAlign='left'; x.textBaseline='top';
+  x.fillText(T('total'), PAD, PAD);
+
+  const top=PAD+TT;
+  const cols=[PAD, PAD+nameW, PAD+nameW+numW, PAD+nameW+numW*2, PAD+nameW+numW*3];
+  const headLabels=[T('guild'),T('boxp'),T('box'),T('ticket'),
+    (S.lang==='zh'?'名次次數(1/2/3/4/5+)':S.lang==='ko'?'순위 횟수(1/2/3/4/5+)':'順位の回数(1位/2位/3位/4位/5位+)')];
+  F(13,'bold'); x.fillStyle='#8A7D6E'; x.textBaseline='top';
+  headLabels.forEach((t,i)=>{
+    const cw = i===0?nameW : i===4?rankW : numW;
+    x.textAlign = (i===0||i===4) ? 'left' : 'right';
+    const tx = (i===0||i===4) ? cols[i] : cols[i]+cw-4;
+    x.fillText(t, tx, top+12, cw-8);
+  });
+  x.strokeStyle='#E4DCCE'; x.beginPath(); x.moveTo(PAD, top+HH-2); x.lineTo(PAD+nameW+numW*3+rankW, top+HH-2); x.stroke();
+
+  let y=top+HH;
+  tv.forEach(o=>{
+    const pillH=28, padX=12;
+    F(15,'bold');
+    const pillW=Math.min(nameW-8, x.measureText(o.n).width+padX*2);
+    x.fillStyle=gcolor(o.n);
+    roundRect(x, PAD, y+(RH-pillH)/2, pillW, pillH, pillH/2); x.fill();
+    x.fillStyle='#222'; x.textAlign='left'; x.textBaseline='middle';
+    x.fillText(o.n, PAD+padX, y+RH/2, pillW-padX*2);
+
+    F(16); x.fillStyle='#222'; x.textAlign='right';
+    [o.bp,o.bx,o.tk].forEach((v,i)=>{ x.fillText(String(v), cols[1+i]+numW-4, y+RH/2, numW-8); });
+
+    F(13); x.fillStyle='#555'; x.textAlign='left';
+    x.fillText(o.r.join('/'), cols[4], y+RH/2, rankW-8);
+
+    x.strokeStyle='#F0EAE0'; x.beginPath(); x.moveTo(PAD,y+RH); x.lineTo(PAD+nameW+numW*3+rankW,y+RH); x.stroke();
+    y+=RH;
+  });
+  return true;
+}
+function exportSumPNG(tv){
+  if(!tv||!tv.length){alert(T('noData'));return;}
+  const cv=document.createElement('canvas');
+  drawSumCanvas(tv,cv);
+  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='summary-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.png';a.click();});
 }
 
 /* ---------- PNG出力（入場予定表） ---------- */
