@@ -585,6 +585,11 @@ function rowCard(B,r,idx){
   const card=el('<div class="card" style="border-left:5px solid '+pc+'"></div>');
   const h=el('<div class="row" style="justify-content:space-between"></div>');
   const toggle=()=>{ if(isOpen) rowOpen.delete(r.id); else rowOpen.add(r.id); render(); };
+  // ✕（削除）は誤タップで消してしまわないよう、畳む／▲▼ボタンから離してパネルの一番左に置く。
+  // 押し間違い対策として確認ダイアログも必須にする
+  const x=el('<button class="b d" style="padding:2px 8px">✕</button>');
+  x.onclick=()=>{ if(confirm(T('confirmDel'))){ B.rows.splice(idx,1); save(); render(); } };
+  h.appendChild(x);
   const left=el('<div style="flex:1;cursor:pointer"></div>');
   const warnMark=(r.synced===false)?' <span style="color:#B8860B">⚠</span>':'';
   const sumLine=isOpen?'':(' <span class="muted small">'+(r.occ?('→ '+r.occ):'')+'</span>'+warnMark);
@@ -602,9 +607,6 @@ function rowCard(B,r,idx){
   if(dn.disabled) dn.style.opacity='0.3';
   dn.onclick=()=>{if(idx<B.rows.length-1){const t=B.rows[idx+1];B.rows[idx+1]=B.rows[idx];B.rows[idx]=t;B.rows[idx+1].synced=false;B.rows[idx].synced=false;save();render();}};
   btns.appendChild(dn);
-  const x=el('<button class="b d">✕</button>');
-  x.onclick=()=>{B.rows.splice(idx,1);save();render();};
-  btns.appendChild(x);
   const arrow=el('<button class="b" style="padding:2px 10px;background:#4a90d9;border-color:#3a74ad;color:#fff;font-weight:700">'+
     (isOpen?(S.lang==='zh'?'▾ 收合':S.lang==='ko'?'▾ 접기':'▾ たたむ'):(S.lang==='zh'?'▸ 展開':S.lang==='ko'?'▸ 펼치기':'▸ ひらく'))+'</button>');
   arrow.onclick=toggle;
@@ -979,16 +981,21 @@ function renderData(){
 
   // 入出力
   const ic=el('<div class="card"><h2>'+T('imp')+' / '+T('exp')+'</h2></div>');
+  ic.appendChild(el('<div class="muted small" style="margin-bottom:8px">'+
+    (S.lang==='zh'?'粉紅色的兩個是一組：用「寫出」備份整個台帳，之後用「讀取（報酬台帳）」還原。綠色的兩個則是分別從Gate Map、攻城計畫這兩個工具匯出的檔案，手動一次性匯入其資料用的（平常已經會自動同步，這裡只有在那邊匯入失敗、或想手動套用特定存檔時才需要）。':
+     S.lang==='ko'?'분홍색 2개는 한 쌍입니다: "써서 내보내기"로 대장 전체를 백업하고, 나중에 "읽어오기（보상 대장）"로 복원합니다. 초록색 2개는 각각 Gate Map과 성 공략 계획 도구에서 내보낸 파일을, 수동으로 한 번만 가져올 때 씁니다（평소에는 자동으로 동기화되므로, 그게 실패했거나 특정 저장본을 수동으로 적용하고 싶을 때만 사용）.':
+     'ピンクの2つは対のボタンです。「書き出し」でこの台帳まるごとをバックアップし、あとで「読み込み（報酬台帳）」で元に戻せます。緑の2つは、Gate Map・城取り計画という別のツールから書き出されたファイルを、手動で一度だけ取り込むためのものです（普段は自動同期で反映されるので、そちらが失敗した時や、特定の保存データを手動で当てたい時だけ使う機能です）。')
+    +'</div>'));
   const ir=el('<div class="row"></div>');
-  const mk=(label,fn)=>{const w=el('<label class="b" style="display:inline-block">'+label+'</label>');
+  const mk=(label,fn,cls)=>{const w=el('<label class="b'+(cls?(' '+cls):'')+'" style="display:inline-block">'+label+'</label>');
     const f=document.createElement('input');f.type='file';f.accept='.json';f.style.display='none';
     f.onchange=e=>{const fl=e.target.files[0];if(!fl)return;const rd=new FileReader();
       rd.onload=()=>{try{fn(JSON.parse(rd.result));save();render();toast(T('saved'));}
       catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
     w.appendChild(f); return w;};
-  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);}));
-  ir.appendChild(mk(T('impGM'),o=>importGateMap(o,true)));
-  ir.appendChild(mk(T('impCP'),importCastlePlan));
+  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);},'p'));
+  ir.appendChild(mk(T('impGM'),o=>importGateMap(o,true),'g'));
+  ir.appendChild(mk(T('impCP'),importCastlePlan,'g'));
   const ex=el('<button class="b p">'+T('exp')+'</button>');
   ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
