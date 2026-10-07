@@ -94,7 +94,7 @@ const L = {
   editBattle:'編集する城戦',incomplete:'英霊が4体そろっていない城',
   save:'保存',imp:'読み込み',exp:'書き出し',sync:'同期',pull:'受信',push:'送信',
   guilds:'ギルド名簿',rewards:'報酬表',resetAll:'全消去',
-  impGM:'Gate Map のJSON',impCP:'城取り計画のJSON',
+  impGM:'Gate MapのJSONを読み込む',impCP:'城取り計画のJSONを読み込む',
   slotLabel:'Lv',spirit:'英霊',fac:'施設',
   breakdown:'城戦ごとの内訳',noData:'データがありません。',
   guildName:'ギルド名',color:'色',
@@ -120,7 +120,7 @@ const L = {
   editBattle:'編輯的攻城',incomplete:'英靈不足4隻的城池',
   save:'儲存',imp:'讀取',exp:'匯出',sync:'同步',pull:'接收',push:'傳送',
   guilds:'公會名冊',rewards:'獎勵表',resetAll:'全部清除',
-  impGM:'Gate Map 的JSON',impCP:'攻城計畫的JSON',
+  impGM:'讀取Gate Map的JSON',impCP:'讀取攻城計畫的JSON',
   slotLabel:'Lv',spirit:'英靈',fac:'設施',
   breakdown:'各場攻城明細',noData:'沒有資料。',
   guildName:'公會名稱',color:'顏色',
@@ -146,7 +146,7 @@ const L = {
   editBattle:'편집할 성전',incomplete:'영령이 4체가 아닌 성',
   save:'저장',imp:'불러오기',exp:'내보내기',sync:'동기화',pull:'받기',push:'보내기',
   guilds:'길드 명부',rewards:'보상표',resetAll:'전체 삭제',
-  impGM:'Gate Map JSON',impCP:'성 공략 계획 JSON',
+  impGM:'Gate Map JSON 읽어오기',impCP:'성 공략 계획 JSON 읽어오기',
   slotLabel:'Lv',spirit:'영령',fac:'시설',
   breakdown:'성전별 내역',noData:'데이터가 없습니다.',
   guildName:'길드명',color:'색',
@@ -981,11 +981,6 @@ function renderData(){
 
   // 入出力
   const ic=el('<div class="card"><h2>'+T('imp')+' / '+T('exp')+'</h2></div>');
-  ic.appendChild(el('<div class="muted small" style="margin-bottom:8px">'+
-    (S.lang==='zh'?'粉紅色的兩個是一組：用「寫出」備份整個台帳，之後用「讀取（報酬台帳）」還原。綠色的兩個則是分別從Gate Map、攻城計畫這兩個工具匯出的檔案，手動一次性匯入其資料用的（平常已經會自動同步，這裡只有在那邊匯入失敗、或想手動套用特定存檔時才需要）。':
-     S.lang==='ko'?'분홍색 2개는 한 쌍입니다: "써서 내보내기"로 대장 전체를 백업하고, 나중에 "읽어오기（보상 대장）"로 복원합니다. 초록색 2개는 각각 Gate Map과 성 공략 계획 도구에서 내보낸 파일을, 수동으로 한 번만 가져올 때 씁니다（평소에는 자동으로 동기화되므로, 그게 실패했거나 특정 저장본을 수동으로 적용하고 싶을 때만 사용）.':
-     'ピンクの2つは対のボタンです。「書き出し」でこの台帳まるごとをバックアップし、あとで「読み込み（報酬台帳）」で元に戻せます。緑の2つは、Gate Map・城取り計画という別のツールから書き出されたファイルを、手動で一度だけ取り込むためのものです（普段は自動同期で反映されるので、そちらが失敗した時や、特定の保存データを手動で当てたい時だけ使う機能です）。')
-    +'</div>'));
   const ir=el('<div class="row"></div>');
   const mk=(label,fn,cls)=>{const w=el('<label class="b'+(cls?(' '+cls):'')+'" style="display:inline-block">'+label+'</label>');
     const f=document.createElement('input');f.type='file';f.accept='.json';f.style.display='none';
@@ -993,14 +988,24 @@ function renderData(){
       rd.onload=()=>{try{fn(JSON.parse(rd.result));save();render();toast(T('saved'));}
       catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
     w.appendChild(f); return w;};
+  // 読み込み（報酬台帳）と書き出しは対の操作なので隣に並べ、同じ色にする
   ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);},'p'));
-  ir.appendChild(mk(T('impGM'),o=>importGateMap(o,true),'g'));
-  ir.appendChild(mk(T('impCP'),importCastlePlan,'g'));
   const ex=el('<button class="b p">'+T('exp')+'</button>');
   ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='reward-ledger-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.json';a.click();};
-  ir.appendChild(ex); ic.appendChild(ir); P.appendChild(ic);
+  ir.appendChild(ex);
+  ic.appendChild(ir);
+  ic.appendChild(el('<div class="muted small" style="margin:10px 0 6px">'+
+    (S.lang==='zh'?'以下2個也是「讀取」用的按鈕，分別讀取Gate Map、攻城計畫這兩個工具匯出的檔案（平常已經會自動同步，這裡只有在那邊匯入失敗、或想手動套用特定存檔時才需要）。':
+     S.lang==='ko'?'아래 2개도 "읽어오기" 버튼입니다. 각각 Gate Map, 성 공략 계획 도구에서 내보낸 파일을 읽어옵니다（평소에는 자동으로 동기화되므로, 그게 실패했거나 특정 저장본을 수동으로 적용하고 싶을 때만 사용）.':
+     '下の2つも「読み込み」用のボタンです。Gate Map・城取り計画という別のツールから書き出されたファイルを、それぞれ読み込みます（普段は自動同期で反映されるので、そちらが失敗した時や、特定の保存データを手動で当てたい時だけ使う機能です）。')
+    +'</div>'));
+  const ir2=el('<div class="row"></div>');
+  ir2.appendChild(mk(T('impGM'),o=>importGateMap(o,true),'p'));
+  ir2.appendChild(mk(T('impCP'),importCastlePlan,'p'));
+  ic.appendChild(ir2);
+  P.appendChild(ic);
 
   // ギルド名簿
   const gc=el('<div class="card"><h2>'+T('guilds')+'（'+S.guilds.length+'）</h2></div>');
