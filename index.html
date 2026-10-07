@@ -34,6 +34,8 @@ button.b,label.b{border:1px solid var(--line);background:#fff;border-radius:10px
 button.p,label.p{background:var(--accent);border-color:var(--accent);color:#fff}
 button.g,label.g{background:var(--accent2);border-color:var(--accent2);color:#1f3350}
 button.d,label.d{background:#fff;border-color:var(--bad);color:var(--bad)}
+button.w,label.w{background:#F7C8A0;border-color:#E3A873;color:#5a3a1e}
+button.ok2,label.ok2{background:#9FD8B8;border-color:#7CC29E;color:#1f4a35}
 button.b:active,label.b:active{transform:translateY(1px)}
 input,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:#fff;color:var(--ink);max-width:100%}
 input[type=date]{min-width:150px}
@@ -982,14 +984,18 @@ function renderData(){
   // 入出力
   const ic=el('<div class="card"><h2>'+T('imp')+' / '+T('exp')+'</h2></div>');
   const ir=el('<div class="row"></div>');
+  // 読み込み系は今のデータを問答無用で上書きしてしまう操作なので、警告色＋確認ダイアログを必ず挟む。
+  // 書き出しはファイルを保存するだけの安全な操作なので、見た目も分けてある
+  const importWarnMsg=S.lang==='zh'?'這會覆蓋目前畫面上的資料，確定要讀取嗎？':S.lang==='ko'?'현재 화면의 데이터를 덮어씁니다. 읽어오시겠습니까？':'今の画面のデータが上書きされます。読み込んでよろしいですか？';
   const mk=(label,fn,cls)=>{const w=el('<label class="b'+(cls?(' '+cls):'')+'" style="display:inline-block">'+label+'</label>');
     const f=document.createElement('input');f.type='file';f.accept='.json';f.style.display='none';
-    f.onchange=e=>{const fl=e.target.files[0];if(!fl)return;const rd=new FileReader();
+    f.onchange=e=>{const fl=e.target.files[0];if(!fl)return;
+      if(!confirm(importWarnMsg)){f.value='';return;}
+      const rd=new FileReader();
       rd.onload=()=>{try{fn(JSON.parse(rd.result));save();render();toast(T('saved'));}
       catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
     w.appendChild(f); return w;};
-  // 読み込み（報酬台帳）と書き出しは対の操作なので隣に並べ、同じ色にする
-  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);},'p'));
+  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);},'w'));
   const ex=el('<button class="b p">'+T('exp')+'</button>');
   ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -997,13 +1003,13 @@ function renderData(){
   ir.appendChild(ex);
   ic.appendChild(ir);
   ic.appendChild(el('<div class="muted small" style="margin:10px 0 6px">'+
-    (S.lang==='zh'?'以下2個也是「讀取」用的按鈕，分別讀取Gate Map、攻城計畫這兩個工具匯出的檔案（平常已經會自動同步，這裡只有在那邊匯入失敗、或想手動套用特定存檔時才需要）。':
-     S.lang==='ko'?'아래 2개도 "읽어오기" 버튼입니다. 각각 Gate Map, 성 공략 계획 도구에서 내보낸 파일을 읽어옵니다（평소에는 자동으로 동기화되므로, 그게 실패했거나 특정 저장본을 수동으로 적용하고 싶을 때만 사용）.':
-     '下の2つも「読み込み」用のボタンです。Gate Map・城取り計画という別のツールから書き出されたファイルを、それぞれ読み込みます（普段は自動同期で反映されるので、そちらが失敗した時や、特定の保存データを手動で当てたい時だけ使う機能です）。')
+    (S.lang==='zh'?'綠色的2個也是「讀取」用的按鈕（一樣會覆蓋目前資料），分別讀取Gate Map、攻城計畫這兩個工具匯出的檔案（平常已經會自動同步，這裡只有在那邊匯入失敗、或想手動套用特定存檔時才需要）。':
+     S.lang==='ko'?'초록색 2개도 "읽어오기" 버튼입니다（마찬가지로 현재 데이터를 덮어씁니다）. 각각 Gate Map, 성 공략 계획 도구에서 내보낸 파일을 읽어옵니다（평소에는 자동으로 동기화되므로, 그게 실패했거나 특정 저장본을 수동으로 적용하고 싶을 때만 사용）.':
+     '緑の2つも「読み込み」用のボタンです（同じく今のデータを上書きします）。Gate Map・城取り計画という別のツールから書き出されたファイルを、それぞれ読み込みます（普段は自動同期で反映されるので、そちらが失敗した時や、特定の保存データを手動で当てたい時だけ使う機能です）。')
     +'</div>'));
   const ir2=el('<div class="row"></div>');
-  ir2.appendChild(mk(T('impGM'),o=>importGateMap(o,true),'p'));
-  ir2.appendChild(mk(T('impCP'),importCastlePlan,'p'));
+  ir2.appendChild(mk(T('impGM'),o=>importGateMap(o,true),'ok2'));
+  ir2.appendChild(mk(T('impCP'),importCastlePlan,'ok2'));
   ic.appendChild(ir2);
   P.appendChild(ic);
 
