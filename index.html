@@ -1161,6 +1161,15 @@ function mergeRowIntoRemote(remote,B,r){
     const ri=rb.rows.findIndex(x=>x.id===r.id);
     const rowCopy=JSON.parse(JSON.stringify(r));
     if(ri<0) rb.rows.push(rowCopy); else rb.rows[ri]=rowCopy;
+    // 同じ城戦日の中に、まだ「これでOK」を押していない他の城（自分の画面にしかない行）があれば、
+    // 消してしまわないようここで足す（サーバー側に既にある行は上書きしない＝そちらを優先する）。
+    // これが無いと、1つの城だけOKを押した瞬間に、同じ日の未送信の他の城が消えてしまうバグになる
+    (B.rows||[]).forEach(localRow=>{
+      if(localRow.id===r.id) return; // 今回確定した行は上で処理済み
+      if(!rb.rows.some(x=>x.id===localRow.id)){
+        rb.rows.push(JSON.parse(JSON.stringify(localRow)));
+      }
+    });
   }
   base.u=Date.now();
   return base;
