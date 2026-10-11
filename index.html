@@ -1157,19 +1157,30 @@ function mergeRowIntoRemote(remote,B,r){
   } else {
     const rb=base.battles[bi];
     rb.date=B.date; rb.author=B.author; rb.chk=B.chk; rb.expect=B.expect;
-    rb.rows=Array.isArray(rb.rows)?rb.rows:[];
-    const ri=rb.rows.findIndex(x=>x.id===r.id);
-    const rowCopy=JSON.parse(JSON.stringify(r));
-    if(ri<0) rb.rows.push(rowCopy); else rb.rows[ri]=rowCopy;
-    // 同じ城戦日の中に、まだ「これでOK」を押していない他の城（自分の画面にしかない行）があれば、
-    // 消してしまわないようここで足す（サーバー側に既にある行は上書きしない＝そちらを優先する）。
-    // これが無いと、1つの城だけOKを押した瞬間に、同じ日の未送信の他の城が消えてしまうバグになる
+    const oldRows=Array.isArray(rb.rows)?rb.rows:[];
+    // 行の並び順は「今回OKを押した自分の画面」の並び（B.rows）を基準にする。
+    // サーバー側の古い並びを基準にすると、▲▼で並び替えた後にOKを押した時に
+    // 並び順がサーバーの古い順序に戻って崩れてしまうバグになる。
+    const newRows=[];
     (B.rows||[]).forEach(localRow=>{
-      if(localRow.id===r.id) return; // 今回確定した行は上で処理済み
-      if(!rb.rows.some(x=>x.id===localRow.id)){
-        rb.rows.push(JSON.parse(JSON.stringify(localRow)));
+      if(localRow.id===r.id){
+        // 今回確定した行は、自分が今送る内容で確定
+        newRows.push(JSON.parse(JSON.stringify(r)));
+      } else {
+        // まだ「これでOK」を押していない他の城は、サーバー側に既にあればそちらの内容を優先
+        // （他デバイスの新しい編集を自分の古いローカルコピーで上書きしないため）。
+        // サーバーに無ければ自分の画面にしかない新しい行なのでそのまま追加する。
+        const serverRow=oldRows.find(x=>x.id===localRow.id);
+        newRows.push(JSON.parse(JSON.stringify(serverRow||localRow)));
       }
     });
+    // 自分の画面には無いがサーバー側にだけある行（他デバイスが追加した行）は、末尾に残す
+    oldRows.forEach(serverRow=>{
+      if(!newRows.some(x=>x.id===serverRow.id)){
+        newRows.push(JSON.parse(JSON.stringify(serverRow)));
+      }
+    });
+    rb.rows=newRows;
   }
   base.u=Date.now();
   return base;
