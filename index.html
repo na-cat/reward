@@ -112,7 +112,8 @@ const L = {
   presetOverwrite:'」を今の顔ぶれで上書きしますか？',presetManage:'ギルド顔ぶれプリセット',presetEmpty:'まだプリセットがありません。',presetGuildsCount:'ギルド',
   rewardOverride:'報酬を上書き',rewardOverrideNote:'⚠ このギルドの報酬は、実際の城内で起きたハプニング等により手動で上書きされています（門配置・担当ギルドは変更していません）',
   sumFilter:'表示するギルドを選ぶ',selectAll:'すべて選択',selectNone:'すべて解除',
-  addExtraResult:'＋ 門配置にいないギルドを実際の結果として追加（乱入してきた敵ギルドなど）',alreadyListed:'すでに一覧にあります'},
+  addExtraResult:'＋ 門配置にいないギルドを実際の結果として追加（乱入してきた敵ギルドなど）',alreadyListed:'すでに一覧にあります',
+  cap5:'再解放・防衛戦（最大5ギルドまで）'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -138,7 +139,8 @@ const L = {
   presetOverwrite:'」要用目前的名單覆蓋嗎？',presetManage:'公會名單預設組合',presetEmpty:'尚無預設組合。',presetGuildsCount:'個公會',
   rewardOverride:'覆蓋獎勵',rewardOverrideNote:'⚠ 此公會的獎勵因實際攻城中發生的突發狀況而手動覆蓋（門配置・負責公會並未變更）',
   sumFilter:'選擇要顯示的公會',selectAll:'全部選取',selectNone:'全部取消',
-  addExtraResult:'＋ 將不在門配置中的公會加入實際結果（例如闖入的敵對公會）',alreadyListed:'已經在清單中'},
+  addExtraResult:'＋ 將不在門配置中的公會加入實際結果（例如闖入的敵對公會）',alreadyListed:'已經在清單中',
+  cap5:'重新解放・防衛戰（最多5個公會）'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -164,7 +166,8 @@ const L = {
   presetOverwrite:'」을 지금 구성으로 덮어쓸까요？',presetManage:'길드 구성 프리셋',presetEmpty:'아직 프리셋이 없습니다.',presetGuildsCount:'개 길드',
   rewardOverride:'보상 덮어쓰기',rewardOverrideNote:'⚠ 이 길드의 보상은 실제 성전 중 발생한 돌발 상황으로 인해 수동으로 덮어쓴 것입니다（문 배치・담당 길드는 변경하지 않았습니다）',
   sumFilter:'표시할 길드 선택',selectAll:'모두 선택',selectNone:'모두 해제',
-  addExtraResult:'＋ 문 배치에 없는 길드를 실제 결과로 추가（난입한 적 길드 등）',alreadyListed:'이미 목록에 있습니다'}
+  addExtraResult:'＋ 문 배치에 없는 길드를 실제 결과로 추가（난입한 적 길드 등）',alreadyListed:'이미 목록에 있습니다',
+  cap5:'재해방・방어전（최대 5길드까지）'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -338,13 +341,15 @@ function battleGuildsUsed(B){
   B.rows.forEach(r=>{usedGuilds(r).forEach(g=>s.add(g));});
   return s;
 }
-function capOf(j){return j==='帝翼' ? 6 : 4;}
+// 城ごとの最大ギルド数。再解放・防衛戦でこの城パネルの「cap5」チェックが入っていれば5まで、
+// 帝翼（門が多い特殊城）は常に6、それ以外は通常4
+function capOf(r){return r.cap5 ? 5 : (r.c==='帝翼' ? 6 : 4);}
 // newVal を curVal の代わりに入れてよいか判定し、よければ applyFn(newVal) を実行
 function tryAssign(r,newVal,curVal,applyFn){
   if(newVal && newVal!==curVal){
     const used=usedGuilds(r); used.delete(curVal||'\0');
-    if(!used.has(newVal) && used.size>=capOf(r.c)){
-      alert((S.lang==='zh'?'此城池最多只能有':S.lang==='ko'?'이 성은 최대':'この城は最大')+capOf(r.c)+
+    if(!used.has(newVal) && used.size>=capOf(r)){
+      alert((S.lang==='zh'?'此城池最多只能有':S.lang==='ko'?'이 성은 최대':'この城は最大')+capOf(r)+
         (S.lang==='zh'?'個公會（含佔領公會）。':S.lang==='ko'?'개 길드까지입니다（점령 길드 포함）。':'ギルドまでです（占拠ギルドを含む）。'));
       render(); return;
     }
@@ -624,6 +629,13 @@ function rowCard(B,r,idx){
       card.appendChild(el('<div class="warnbox">'+T('rewardOverrideNote')+'：'+ovNames.join('、')+'</div>'));
     }
   }
+
+  // 再解放・防衛戦でこの城だけ5ギルドまで入れるようにするチェックボックス
+  const cap5row=el('<label class="small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px"></label>');
+  const cap5cb=document.createElement('input'); cap5cb.type='checkbox'; cap5cb.checked=!!r.cap5;
+  cap5cb.onchange=()=>{r.cap5=cap5cb.checked||undefined;touchRow(r);};
+  cap5row.appendChild(cap5cb); cap5row.appendChild(document.createTextNode(T('cap5')));
+  card.appendChild(cap5row);
 
   const oc=el('<div class="slot"></div>');
   oc.appendChild(el('<div class="lab"><b>'+T('occupier')+'</b></div>'));
