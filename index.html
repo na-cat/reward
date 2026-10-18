@@ -31,7 +31,8 @@ main{padding:12px 12px 90px}
 .muted{color:var(--sub);font-size:12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 button.b,label.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;display:inline-block}
-button.p,label.p{background:var(--accent);border-color:var(--accent);color:#fff}
+button.p,label.p{background:var(--accent);border-color:var(--accent);color:#5A3A2A}
+button.mint,label.mint{background:#BFE8D4;border-color:#8FCFB0;color:#5A3A2A}
 button.g,label.g{background:var(--accent2);border-color:var(--accent2);color:#1f3350}
 button.d,label.d{background:#fff;border-color:var(--bad);color:var(--bad)}
 button.w,label.w{background:#F7C8A0;border-color:#E3A873;color:#5a3a1e}
@@ -113,7 +114,19 @@ const L = {
   rewardOverride:'報酬を上書き',rewardOverrideNote:'⚠ このギルドの報酬は、実際の城内で起きたハプニング等により手動で上書きされています（門配置・担当ギルドは変更していません）',
   sumFilter:'表示するギルドを選ぶ',selectAll:'すべて選択',selectNone:'すべて解除',
   addExtraResult:'＋ 門配置にいないギルドを実際の結果として追加（乱入してきた敵ギルドなど）',alreadyListed:'すでに一覧にあります',
-  cap5:'再解放・防衛戦（最大5ギルドまで）'},
+  cap5:'再解放・防衛戦（最大5ギルドまで）',
+  recommend:'🎯 2位以下をおすすめで入力',guildProv:'拠点州',provNone:'（未設定）',
+  recommendNone:'近くの州に拠点があるギルドが見つかりませんでした（ギルド名簿で各ギルドの拠点州を設定してください）',
+  recommendFilled:'件、おすすめで入力しました（空いていた門のみ）',
+  relTitle:'この日に解放される城',relNew:'🆕 新規解放',relRe:'🔁 再解放',
+  relNone:'この日は解放される城がありません（解放日ではない日です）',
+  relNoStart:'シーズン最初の城戦の日が未設定なので、この日にどの城が解放されるか表示できません。データタブで日付を入れるか、城取り計画のJSONを読み込んでください。',
+  relAddAll:'＋ 新規解放の城をまとめて追加',relReTap:'タップで一覧、必要な城だけタップして追加',relAdded:'城を追加しました',relAllAdded:'この日の新規解放の城はすべて追加済みです',relReMatch:'新規解放と同じくらいの報酬の再解放（再解放は2位扱いで比較）',relAddRe:'＋ 同じくらいの報酬の再解放の城をまとめて追加',relReAllAdded:'該当する再解放の城はすべて追加済みです',relReNone:'この日は、新規解放と同じくらいの報酬になる再解放の城がありません（新規解放の州とその隣の州に、2位の報酬が新規解放の1位の報酬と同じくらい〜ちょっと上になる再解放の城がないため。味方がいないエリアの城は除いています）',noAlly:'味方なし・除外',
+  recAll:'🎯 この日の全部の城に2位以下をおすすめで入力',recAllNone:'おすすめで入力できる空き門がありませんでした',
+  seasonStart:'シーズン最初の城戦の日（城取り計画と同じ日付）',seasonStartNote:'城取り計画のJSONを読み込むと自動で入ります。城主（1位）の割当も一緒に取り込まれます。',
+  badgeNew:'新規解放',badgeRe:'再解放',
+  reopenHint:'この日はこの城の再解放日です。防衛戦（城主＋門4ギルド）なら上の5ギルドのチェックを入れてください。',
+  occNew:'新規占領',occKeepBtn:'変更なし',occChgBtn:'変更あり',occHolder:'この日の城主',occHolderNone:'城主の記録なし（城取り計画にも割当なし）',occNewLord:'新しい城主ギルド',occPrev:'前の城主',dupDay1:' は、この日すでに「',dupDay2:'」に入っています。1つのギルドが同じ日に入れる城は1つだけです。それでもここに入れますか？',dupDayNote:'このギルドは同じ日に別の城にも入っています（1ギルドが同じ日に入れる城は1つだけです）'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -140,7 +153,19 @@ const L = {
   rewardOverride:'覆蓋獎勵',rewardOverrideNote:'⚠ 此公會的獎勵因實際攻城中發生的突發狀況而手動覆蓋（門配置・負責公會並未變更）',
   sumFilter:'選擇要顯示的公會',selectAll:'全部選取',selectNone:'全部取消',
   addExtraResult:'＋ 將不在門配置中的公會加入實際結果（例如闖入的敵對公會）',alreadyListed:'已經在清單中',
-  cap5:'重新解放・防衛戰（最多5個公會）'},
+  cap5:'重新解放・防衛戰（最多5個公會）',
+  recommend:'🎯 自動建議第2名以下',guildProv:'據點州',provNone:'（未設定）',
+  recommendNone:'找不到據點在附近州的公會（請在公會名冊設定各公會的據點州）',
+  recommendFilled:'個已自動填入（僅填入空的城門）',
+  relTitle:'當天開放的城池',relNew:'🆕 首次開放',relRe:'🔁 重新開放',
+  relNone:'當天沒有開放的城池（不是開放日）',
+  relNoStart:'尚未設定賽季首次城戰日期，無法顯示當天開放哪些城池。請在資料分頁輸入日期，或讀取攻城計畫的JSON。',
+  relAddAll:'＋ 一次新增首次開放的城池',relReTap:'點選展開清單，只點選需要的城池新增',relAdded:'座城池已新增',relAllAdded:'當天首次開放的城池已全部新增',relReMatch:'與首次開放獎勵相近的再開放（再開放以第2名獎勵比較）',relAddRe:'＋ 一次新增獎勵相近的再開放城池',relReAllAdded:'符合條件的再開放城池已全部新增',relReNone:'當天沒有與首次開放獎勵相近的再開放城池（首次開放的州及鄰近州中，沒有第2名獎勵與首次開放第1名獎勵相近或稍高的再開放城池。沒有我方公會的區域已排除）',noAlly:'無我方・排除',
+  recAll:'🎯 為當天所有城池自動建議第2名以下',recAllNone:'沒有可以自動填入的空城門',
+  seasonStart:'賽季首次城戰日期（與攻城計畫相同）',seasonStartNote:'讀取攻城計畫的JSON後會自動填入，城主（第1名）的分配也會一起帶入。',
+  badgeNew:'首次開放',badgeRe:'重新開放',
+  reopenHint:'當天是這座城池的重新開放日。若是防衛戰（城主＋城門4個公會），請勾選上方的5個公會選項。',
+  occNew:'新佔領',occKeepBtn:'無變更',occChgBtn:'有變更',occHolder:'當天城主',occHolderNone:'沒有城主記錄（攻城計畫也沒有分配）',occNewLord:'新城主公會',occPrev:'前任城主',dupDay1:' 當天已經在「',dupDay2:'」了。一個公會同一天只能進入一座城池。仍要放在這裡嗎？',dupDayNote:'這個公會當天也在其他城池（一個公會同一天只能進入一座城池）'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -167,7 +192,19 @@ const L = {
   rewardOverride:'보상 덮어쓰기',rewardOverrideNote:'⚠ 이 길드의 보상은 실제 성전 중 발생한 돌발 상황으로 인해 수동으로 덮어쓴 것입니다（문 배치・담당 길드는 변경하지 않았습니다）',
   sumFilter:'표시할 길드 선택',selectAll:'모두 선택',selectNone:'모두 해제',
   addExtraResult:'＋ 문 배치에 없는 길드를 실제 결과로 추가（난입한 적 길드 등）',alreadyListed:'이미 목록에 있습니다',
-  cap5:'재해방・방어전（최대 5길드까지）'}
+  cap5:'재해방・방어전（최대 5길드까지）',
+  recommend:'🎯 2위 이하 자동 추천 입력',guildProv:'거점 주',provNone:'（미설정）',
+  recommendNone:'근처 주에 거점을 둔 길드를 찾지 못했습니다（길드 명부에서 각 길드의 거점 주를 설정해 주세요）',
+  recommendFilled:'건 추천으로 입력했습니다（비어 있던 문만）',
+  relTitle:'이 날 개방되는 성',relNew:'🆕 신규 개방',relRe:'🔁 재개방',
+  relNone:'이 날은 개방되는 성이 없습니다（개방일이 아닙니다）',
+  relNoStart:'시즌 첫 성전 날짜가 설정되지 않아 이 날 어떤 성이 개방되는지 표시할 수 없습니다. 데이터 탭에서 날짜를 입력하거나 성 공략 계획 JSON을 읽어오세요.',
+  relAddAll:'＋ 신규 개방 성 한꺼번에 추가',relReTap:'탭하면 목록 표시, 필요한 성만 탭해서 추가',relAdded:'개 성을 추가했습니다',relAllAdded:'이 날 신규 개방 성은 모두 추가되어 있습니다',relReMatch:'신규 개방과 비슷한 보상의 재개방（재개방은 2위 보상으로 비교）',relAddRe:'＋ 비슷한 보상의 재개방 성 한꺼번에 추가',relReAllAdded:'해당하는 재개방 성은 모두 추가되어 있습니다',relReNone:'이 날은 신규 개방과 비슷한 보상의 재개방 성이 없습니다（신규 개방 주와 인접 주에 2위 보상이 신규 개방 1위 보상과 비슷하거나 조금 높은 재개방 성이 없기 때문. 아군이 없는 지역의 성은 제외했습니다）',noAlly:'아군 없음・제외',
+  recAll:'🎯 이 날 모든 성에 2위 이하 자동 추천 입력',recAllNone:'추천으로 입력할 빈 문이 없었습니다',
+  seasonStart:'시즌 첫 성전 날짜（성 공략 계획과 같은 날짜）',seasonStartNote:'성 공략 계획 JSON을 읽어오면 자동으로 입력됩니다. 성주（1위） 배정도 함께 가져옵니다.',
+  badgeNew:'신규 개방',badgeRe:'재개방',
+  reopenHint:'이 날은 이 성의 재개방일입니다. 방어전（성주＋문 4길드）이라면 위의 5길드 체크를 켜 주세요.',
+  occNew:'신규 점령',occKeepBtn:'변경 없음',occChgBtn:'변경 있음',occHolder:'이날의 성주',occHolderNone:'성주 기록 없음（성 공략 계획에도 배정 없음）',occNewLord:'새 성주 길드',occPrev:'이전 성주',dupDay1:' 은(는) 이 날 이미 「',dupDay2:'」에 들어가 있습니다. 한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다. 그래도 여기에 넣으시겠습니까？',dupDayNote:'이 길드는 같은 날 다른 성에도 들어가 있습니다（한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다）'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -182,11 +219,17 @@ const DEF_REWARDS={
  4:[[4,15,500],[4,15,450],[2,10,400],[2,10,400],[2,10,400]],
  5:[[5,25,650],[5,25,600],[3,15,500],[3,15,500],[3,15,500]],
  6:[[10,25,750],[7,25,700],[4,15,600],[4,15,600],[4,15,600]],
- 7:[[15,30,830],[8,30,800],[6,25,750],[4,15,750],[4,15,750]],
+ 7:[[15,30,830],[8,30,800],[6,25,750],[4,15,700],[4,15,700]],
  8:[[20,30,880],[10,30,850],[8,25,830],[5,15,750],[5,15,750]],
  9:[[25,35,1000],[20,35,900],[15,30,850],[10,16,700],[10,16,700]],
  10:[[30,35,1200],[30,35,1100],[15,30,1000],[10,20,800],[10,20,800]]
 };
+// 以前の既定値の誤り（Lv7の4位・5位の券が750になっていた。正しくは700）を、保存済みデータでも直す。
+// 手で別の値に書き換えてある場合は触らない（古い既定値と完全に同じ時だけ直す）
+function fixRewards(rw){
+  if(!rw||!rw[7]) return;
+  [3,4].forEach(i=>{ const w=rw[7][i]; if(w && w[0]===4 && w[1]===15 && w[2]===750) rw[7][i]=[4,15,700]; });
+}
 const PASTEL=['#F2B5C4','#9FD8B8','#A9C6F0','#F5D28C','#C8B4E8','#8FD9D4','#F0A98C','#B9DE8C',
  '#E4B0DE','#8FC4A0','#D7C9A0','#9BB8D6','#EFC2A0','#B0D2E8','#D9A9A9','#A8E0C4'];
 
@@ -195,6 +238,73 @@ const KEY='arl.v1';
 let S={lang:'ja',boss:{},guilds:[],battles:[],rewards:null,cur:null,u:0};
 const CITY={}, BYPROV=[];
 SEED.cities.forEach(c=>{CITY[c.j]=c; (BYPROV[c.p]=BYPROV[c.p]||[]).push(c);});
+// 州の隣接関係（ましろさんから聞いた固定マップ）。2位以下のおすすめ配分で「近くの州にいるギルド」を判定するために使う
+const PROV_ADJ={0:[2],1:[2],2:[0,1,12],3:[5],4:[5],5:[3,4,12],6:[8],7:[8],8:[6,7,12],9:[11],10:[11],11:[9,10,12],12:[2,5,8,11]};
+
+/* ---------- 城の解放日（城取り計画と同じ計算） ---------- */
+// SEED.cities の w（解放回①〜⑫）は城取り計画の META と全117城で一致している。
+// シーズン最初の城戦の日（S.seasonStart）さえ分かれば、城取り計画と同じ日付が出せる。
+// 解放回1＝最初の城戦の日、以降は金曜・月曜の城戦日ごとに次の回。再解放は初解放のちょうど1週間後。
+function parseISOd(s){const p=(s||'').split('-');if(p.length!==3)return null;const d=new Date(+p[0],+p[1]-1,+p[2]);return isNaN(d)?null:d;}
+function isoOf(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function waveDates(){
+  const d0=parseISOd(S.seasonStart); if(!d0) return null;
+  const out=[new Date(d0)]; const d=new Date(d0);
+  while(out.length<12){ d.setDate(d.getDate()+1); const g=d.getDay(); if(g===5||g===1) out.push(new Date(d)); }
+  return out.map(isoOf);
+}
+function relInfo(j){
+  const c=CITY[j], wd=waveDates(); if(!c||!wd||!c.w) return null;
+  const nd=wd[c.w-1], re=parseISOd(nd); re.setDate(re.getDate()+7);
+  return {w:c.w,newDate:nd,reDate:isoOf(re)};
+}
+// その日、その城が「新規解放(new)」「再解放(reopen)」のどちらか。どちらでもなければnull。
+// 再解放は、初解放から1週間たった日以降、毎週の月曜・金曜（城戦日）にずっと続く
+function castleStatus(j,date){
+  const i=relInfo(j); if(!i||!date) return null;
+  if(date===i.newDate) return 'new';
+  if(date>=i.reDate){ const d=parseISOd(date); if(d){ const g=d.getDay(); if(g===1||g===5) return 'reopen'; } }
+  return null;
+}
+// その日に解放される城の一覧（Lvの高い順）
+function castlesOn(date){
+  const res={new:[],reopen:[]};
+  if(!date||!waveDates()) return res;
+  SEED.cities.forEach(c=>{const s=castleStatus(c.j,date); if(s) res[s].push(c.j);});
+  const byLv=(a,b)=>(CITY[b].lv-CITY[a].lv);
+  res.new.sort(byLv); res.reopen.sort(byLv);
+  return res;
+}
+// 新規解放と同じくらい（同じLv〜1つ上のLv）の報酬が出る再解放の城。
+// その日に新規解放がある州ごとに、その州の新規解放の城の一番高いLvを基準にして、同じ州の再解放の城から選ぶ（該当が複数あれば全部）
+// 味方ギルドが1つもいないエリアの城は、まとめて追加の対象外にする。
+// エリア＝その城の州＋隣接州（おすすめ配分の候補範囲と同じ）。拠点州を設定したギルドが1つもない時は絞り込まない
+function allyNear(j){
+  const provs=new Set(S.guilds.filter(g=>g.prov!==undefined&&g.prov!==null&&g.prov!=='').map(g=>+g.prov));
+  if(!provs.size) return true;
+  const c=CITY[j]; if(!c) return true;
+  return [c.p,...(PROV_ADJ[c.p]||[])].some(p=>provs.has(p));
+}
+function reopenMatches(info){
+  // 再解放は城主が変わらない限り、入場したギルドの中で一番でも2位の報酬にしかならない。
+  // そこで新規解放がある州ごとに、その州＋隣接州（例：雲澤なら裁淵・墜星・翼都）の再解放の城から、
+  // 「再解放の2位報酬」が「新規解放の1位報酬」と同じくらい〜ちょっと上になる城を全部選ぶ。
+  // 基準Lv L＝2位の券が新規解放1位の券以上になる一番低いLv。L と L+1 の城が対象
+  const tk=(lv,rk)=>{const w=reward(lv,rk); return w?w[2]:0;};
+  const maxLv={};
+  info.new.forEach(j=>{const c=CITY[j]; maxLv[c.p]=Math.max(maxLv[c.p]||0,c.lv);});
+  const out=new Set();
+  Object.keys(maxLv).forEach(p=>{
+    const target=tk(maxLv[p],1);
+    let L=maxLv[p]; while(L<10 && tk(L,2)<target) L++;
+    const area=new Set([+p,...(PROV_ADJ[+p]||[])]);
+    info.reopen.forEach(j=>{const c=CITY[j]; if(area.has(c.p) && (c.lv===L || c.lv===L+1)) out.add(j);});
+  });
+  return info.reopen.filter(j=>out.has(j));
+}
+// 城取り計画で「この城を取るギルド」として割り当てられているギルド（＝城主・1位の予定）
+function cpOcc(j){ const g=(S.cpAssign||{})[j]; return g?normGuild(g):''; }
+const CIRC='①②③④⑤⑥⑦⑧⑨⑩⑪⑫';
 function T(k){return (L[S.lang]&&L[S.lang][k])||L.ja[k]||k;}
 function cname(j){const c=CITY[j];if(!c)return j;return S.lang==='zh'?c.t:S.lang==='ko'?c.k:c.j;}
 function cname3(j){const c=CITY[j];if(!c)return j;return c.t+'｜'+c.j+'｜'+c.k;}
@@ -209,6 +319,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 function load(){
   try{const r=localStorage.getItem(KEY); if(r){const o=JSON.parse(r); Object.assign(S,o);} }catch(e){}
   if(!S.rewards) S.rewards=JSON.parse(JSON.stringify(DEF_REWARDS));
+  fixRewards(S.rewards);
   if(!S.boss||!Object.keys(S.boss).length) S.boss=JSON.parse(JSON.stringify(SEED.boss));
   if(!S.guilds) S.guilds=[];
   if(!S.battles) S.battles=[];
@@ -344,8 +455,33 @@ function battleGuildsUsed(B){
 // 城ごとの最大ギルド数。再解放・防衛戦でこの城パネルの「cap5」チェックが入っていれば5まで、
 // 帝翼（門が多い特殊城）は常に6、それ以外は通常4
 function capOf(r){return r.cap5 ? 5 : (r.c==='帝翼' ? 6 : 4);}
+// 同じ日（同じ城戦B）の、r以外の城にそのギルドが入っていれば、その城の名前を返す（なければ''）。
+// ルール：1つのギルドが同じ日に入れる城は1つだけ（同じ城の中で門を2つ以上塗るのはOK）
+// 再解放の城で、城主欄がその日までの持ち主のまま（＝誰も取らない日）なら、そのギルドは城を「持っているだけ」。
+// 守りに出なくても1位の報酬はもらえるし、同じ日に別の城に入ってもよいので、1日1城の数には入れない
+function incumbentOf(B,r){
+  if(!B||!r||castleStatus(r.c,B.date)!=='reopen') return '';
+  return holderOn(r.c,B.date)||cpOcc(r.c);
+}
+// 再解放の城の城主が「変更あり」か。ボタンで選んだ値(r.chg)があればそれ、なければ城主欄がその日までの持ち主と違うかで判断
+function chgMode(B,r){
+  if(castleStatus(r.c,B.date)!=='reopen') return false;
+  if(typeof r.chg==='boolean') return r.chg;
+  const inc=incumbentOf(B,r); return !!(r.occ && r.occ!==inc);
+}
+function holdOnly(B,r,n){ return !!n && n===r.occ && n===incumbentOf(B,r) && !chgMode(B,r); }
+function otherCastleToday(B,r,n){
+  if(!B||!n) return '';
+  const x=(B.rows||[]).find(o=>o!==r && usedGuilds(o).has(n) && !(holdOnly(B,o,n) && !Object.values(o.a||{}).includes(n) && !(o.ex||[]).includes(n)));
+  return x?x.c:'';
+}
 // newVal を curVal の代わりに入れてよいか判定し、よければ applyFn(newVal) を実行
 function tryAssign(r,newVal,curVal,applyFn){
+  if(newVal && newVal!==curVal && !usedGuilds(r).has(newVal)){
+    const B=S.battles.find(b=>(b.rows||[]).includes(r));
+    const other=(curVal===r.occ && newVal===incumbentOf(B,r))?'':otherCastleToday(B,r,newVal);
+    if(other && !confirm(newVal+T('dupDay1')+cname(other)+T('dupDay2'))){ render(); return; }
+  }
   if(newVal && newVal!==curVal){
     const used=usedGuilds(r); used.delete(curVal||'\0');
     if(!used.has(newVal) && used.size>=capOf(r)){
@@ -380,11 +516,71 @@ function tally(){
   return Object.values(m).sort((a,b)=>b.tk-a.tk||b.bp-a.bp);
 }
 
+/* ---------- 2位以下のおすすめ配分 ---------- */
+// 占拠ギルド（1位）は同盟側の指定で決まっていることが多いので対象外。空いている門だけを、
+// ①その城の州＋隣接州に拠点があるギルドの中から、②今までの獲得報酬（券の合計、同数なら宝箱+→宝箱）が
+// 少ない順に、Lvの高い（＝順位の良い）門から詰めていく（累計を平均化するのが狙い）。
+// その日に「この日に入るはずのギルド」(B.expect)が指定されていれば、絞り込みに使う（結果0件になる時は無視する）。
+function recommendGates(B,r){
+  const city=CITY[r.c]; if(!city) return 0;
+  let filled=0;
+  // 城主ギルドは専属門（★）を取るのがセオリー。専属門が空いていれば城主を入れる。
+  // 再解放（5ギルド枠）で城主がその日までの持ち主のまま＝守る側なら、門には入らないので割り当てない。
+  // 城主欄が別のギルド（＝その日に城を譲り受ける挑戦者）に替わっていれば、そのギルドは門から入るので専属門に入れる
+  const incumbent=r.cap5?(holderOn(r.c,B.date)||cpOcc(r.c)):'';
+  if(r.occ && (!r.cap5 || r.occ!==incumbent)){
+    const star=slots(r.c).find(sl=>sl.st && sl.g);
+    if(star && !(r.a||{})[star.lv] && !(r.noCalc&&r.noCalc[star.lv])){
+      r.a=r.a||{}; r.a[star.lv]=r.occ; filled++;
+    }
+  }
+  const allowedProv=new Set([city.p, ...(PROV_ADJ[city.p]||[])]);
+  const already=usedGuilds(r);
+  let pool=S.guilds.filter(g=>g.prov!==undefined && g.prov!==null && allowedProv.has(g.prov) && g.n!==r.occ && !already.has(g.n) && !(incumbent && g.n===incumbent));
+  // ↑譲渡の日の元の城主は、ふつう防衛戦に出ない（他の城に行くこともある）ので、2位以下の候補にもしない
+  if(B.expect && B.expect.length){
+    const filtered=pool.filter(g=>B.expect.includes(g.n));
+    if(filtered.length) pool=filtered;
+  }
+  if(!pool.length) return filled;
+  // 1つのギルドが同じ日に入れる城は1つだけ。同じ日の他の城にすでに入っているギルドは候補から外す
+  pool=pool.filter(g=>!otherCastleToday(B,r,g.n));
+  if(!pool.length) return filled;
+  const tl=tally();
+  const scoreOf=n=>{const row=tl.find(x=>x.n===n); return row?[row.tk,row.bp,row.bx]:[0,0,0];};
+  pool=pool.slice().sort((a,b)=>{
+    const sa=scoreOf(a.n), sb=scoreOf(b.n);
+    return sa[0]-sb[0] || sa[1]-sb[1] || sa[2]-sb[2];
+  });
+  const emptySlots=slots(r.c).filter(sl=>!(r.a||{})[sl.lv]).sort((a,b)=>b.lv-a.lv); // Lvの高い（良い順位の）門から
+  const room=Math.max(0, capOf(r)-already.size); // 1位(occ含むusedGuilds)を含めた現在の使用数から、あと何ギルド入れられるか
+  for(let i=0;i<emptySlots.length && i<room && i<pool.length;i++){
+    r.a=r.a||{}; r.a[emptySlots[i].lv]=pool[i].n; filled++;
+  }
+  return filled;
+}
+
+/* ---------- 不具合の見える化 ---------- */
+// 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
+// BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
+const BUILD='1019j';
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){b=document.createElement('div');b.id='errbar';
+      b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:200;background:#D9736F;color:#fff;padding:8px 12px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-all';
+      b.onclick=()=>b.remove(); document.body.appendChild(b);}
+    b.textContent='⚠ '+msg+'（タップで閉じる）';
+  }catch(e){}
+}
+window.addEventListener('error',e=>showErr((e.message||'error')+(e.lineno?(' @'+e.lineno):'')));
+window.addEventListener('unhandledrejection',e=>showErr('通信など: '+((e.reason&&e.reason.message)||e.reason)));
+
 /* ---------- 画面 ---------- */
 const TABS=['plan','sum','castle','data'];
 let tab='plan';
 function render(){
-  document.getElementById('ttl').textContent=T('title');
+  document.getElementById('ttl').innerHTML=T('title')+' <span style="font-size:10px;font-weight:400;color:#8A7D6E">v'+BUILD+'</span>';
   document.documentElement.lang=S.lang==='zh'?'zh-Hant':S.lang==='ko'?'ko':'ja';
   document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
   const nav=document.getElementById('nav'); nav.innerHTML='';
@@ -435,7 +631,7 @@ function provPills(activeIdx,onPick){
 }
 
 /* --- 予定（城戦ごとにアコーディオン） --- */
-let expanded=new Set(), openProv={}, pvBattleId=null, rowOpen=new Set();
+let expanded=new Set(), openProv={}, pvBattleId=null, rowOpen=new Set(), reopenOpen=new Set();
 function curBattle(){return S.battles.find(b=>b.id===S.cur)||null;}
 function authorList(){return [...new Set(S.battles.map(b=>b.author).filter(Boolean))].sort();}
 function renderPlan(){
@@ -444,8 +640,8 @@ function renderPlan(){
   const head=el('<div class="card"></div>');
   const r1=el('<div class="row"></div>');
   const nb=el('<button class="b p">＋ '+T('newBattle')+'</button>');
-  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:'',chk:false,expect:[]};
-    S.battles.unshift(b);S.cur=b.id;expanded=new Set([b.id]);save();render();};
+  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:S.authorFilter||'',chk:false,expect:[]}; // 入力者で絞り込み中なら、その人の城戦として作る（作った城戦が絞り込みで隠れて「追加できない」ように見えるのを防ぐ）
+    try{S.battles.unshift(b);S.cur=b.id;expanded=new Set([b.id]);save();render();toast('✓ '+b.date+' ('+S.battles.length+')');}catch(err){showErr('城戦を作る処理でエラー: '+err.message);}};
   r1.appendChild(nb);
   const authors=authorList();
   if(authors.length){
@@ -474,7 +670,7 @@ function renderPlan(){
   if(!S.battles.length){P.appendChild(el('<div class="card muted">'+T('noBattle')+'</div>'));return;}
 
   let list=S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  if(S.authorFilter) list=list.filter(b=>b.author===S.authorFilter);
+  if(S.authorFilter) list=list.filter(b=>b.author===S.authorFilter || b.id===S.cur); // 今開いている城戦は絞り込みで消さない
 
   list.forEach(B=>P.appendChild(battleCard(B)));
 }
@@ -566,13 +762,20 @@ function battleCard(B){
   pr.appendChild(psave);
   c2.appendChild(pr);
 
+  // この日に解放される城（城取り計画と同じ計算）。新規解放／再解放を一覧にし、まとめて追加・おすすめ入力できる
+  c2.appendChild(releaseBox(B));
+
   const pidx = openProv[B.id]===undefined ? 0 : openProv[B.id];
   c2.appendChild(provPills(pidx, i=>{openProv[B.id]=i; render();}));
   const cs=document.createElement('select');
-  (BYPROV[pidx]||[]).forEach(c=>cs.appendChild(new Option(cname(c.j)+'（Lv'+c.lv+'）',c.j)));
+  (BYPROV[pidx]||[]).forEach(c=>{
+    const st=castleStatus(c.j,B.date);
+    const mark=st==='new'?'🆕 ':st==='reopen'?'🔁 ':'';
+    cs.appendChild(new Option(mark+cname(c.j)+'（Lv'+c.lv+'）',c.j));
+  });
   const ra=el('<div class="row" style="margin-top:6px"></div>');
   const ab=el('<button class="b p">'+T('addCastle')+'</button>');
-  ab.onclick=()=>{if(!cs.value)return; const nr={id:uid(),c:cs.value,occ:'',a:{},ex:[],shot:''}; B.rows.unshift(nr); rowOpen.add(nr.id); save();render();};
+  ab.onclick=()=>{if(!cs.value)return; const nr=newRowFor(B,cs.value); B.rows.unshift(nr); rowOpen.add(nr.id); save();render();};
   ra.appendChild(cs);ra.appendChild(ab); c2.appendChild(ra);
   card.appendChild(c2);
 
@@ -583,6 +786,112 @@ function fileToImage(file,cb){
   const img=new Image(); const rd=new FileReader();
   rd.onload=()=>{img.onload=()=>cb(img);img.src=rd.result;};
   rd.readAsDataURL(file);
+}
+// 城を1つ追加する時の初期値。城取り計画に城主（取る予定のギルド）があれば占拠ギルドに入れておき、
+// その日が再解放日なら5ギルドのチェックも最初から入れておく（どちらも後から自由に変更できる）
+// その日の時点での城主：この台帳で、その日より前に同じ城を記録した一番新しい城戦の1位（占拠ギルド）。
+// 再解放で城主が替われば、その城戦の1位は新しい城主になるので、台帳の記録を順にたどれば「その日の持ち主」が分かる。
+// 記録がない時は空（呼び出し側で城取り計画の割当＝シーズン終了時の持ち主を使う）
+function holderOn(j,date){
+  let best=null;
+  (S.battles||[]).forEach(b=>{
+    if(!b.date || !date || b.date>=date) return;
+    (b.rows||[]).forEach(r=>{ if(r.c===j && r.occ && (!best || b.date>best.d)) best={d:b.date,g:r.occ}; });
+  });
+  return best?best.g:'';
+}
+function newRowFor(B,j){
+  const nr={id:uid(),c:j,occ:'',a:{},ex:[],shot:'',synced:false};
+  // 城取り計画の割当は「今の（最終的な）城主」で、途中で譲渡などがあれば初回に取ったギルドとは限らない。
+  // なので自動で入れるのは、これからの城戦（今日以降）の予定を作る時だけ。過去の日付では参考表示にとどめる。
+  // また、その日すでに別の城に入っているギルドは入れない（1ギルドが同じ日に入れる城は1つだけ）
+  const o=cpOcc(j);
+  const upcoming=!!B.date && B.date>=isoOf(new Date());
+  const reopen=castleStatus(j,B.date)==='reopen';
+  // 再解放の城は、城取り計画の割当（＝いまの城主）がそのまま防衛側の城主になるので、日付に関係なく自動で入れる。
+  // 城主は守る側なので、同じギルドが同じ日に複数の城の城主になっていても問題ない（1日1城の制限は入場する側の話）
+  const h=reopen?(holderOn(j,B.date)||o):'';
+  if(h && reopen){ addGuild(h); nr.occ=h; }
+  else if(o && upcoming && !otherCastleToday(B,null,o)){ addGuild(o); nr.occ=o; }
+  if(reopen) nr.cap5=true;
+  return nr;
+}
+function releaseBox(B){
+  const box=el('<div class="okbox" style="margin-top:8px"></div>');
+  box.appendChild(el('<div style="font-weight:700;margin-bottom:4px">'+T('relTitle')+'</div>'));
+  if(!waveDates()){ box.className='warnbox'; box.style.marginTop='8px'; box.appendChild(el('<div class="small">'+T('relNoStart')+'</div>')); return box; }
+  const info=castlesOn(B.date);
+  if(!info.new.length && !info.reopen.length){ box.appendChild(el('<div class="small muted">'+T('relNone')+'</div>')); return box; }
+  const inDay=new Set(B.rows.map(x=>x.c));
+  // 城のチップ。まだ追加していない城はタップするとその城を追加できる（追加済みは✓で薄く表示）
+  const chip=j=>{
+    const occ=cpOcc(j), done=inDay.has(j), noAlly=!allyNear(j);
+    const p=el('<span class="pill" style="cursor:'+(done?'default':'pointer')+';'+(done?'opacity:.55':'')+'">'+(done?'✓ ':'＋ ')+
+      cname(j)+' <span class="muted">Lv'+CITY[j].lv+(occ?(' → '+occ):'')+(noAlly&&!done?(' '+T('noAlly')):'')+'</span></span>');
+    if(noAlly&&!done) p.style.opacity='.6';
+    if(!done) p.onclick=()=>{ const nr=newRowFor(B,j); B.rows.unshift(nr); rowOpen.add(nr.id); save(); render(); };
+    return p;
+  };
+  if(info.new.length){
+    const w=el('<div class="small" style="margin:2px 0;line-height:1.9"><b style="margin-right:4px">'+T('relNew')+'</b></div>');
+    info.new.forEach(j=>w.appendChild(chip(j)));
+    box.appendChild(w);
+  }
+  const reMatch=reopenMatches(info).filter(allyNear);
+  if(reMatch.length){
+    const w=el('<div class="small" style="margin:2px 0;line-height:1.9"><b style="margin-right:4px">'+T('relReMatch')+'</b></div>');
+    reMatch.forEach(j=>w.appendChild(chip(j)));
+    box.appendChild(w);
+  }
+  if(info.reopen.length){
+    // 再解放は1週目以降ずっと続くので、シーズン後半は対象が多くなる。普段は畳んでおき、開いた時だけ一覧を出す
+    const open=reopenOpen.has(B.id);
+    const hd=el('<div class="small" style="margin:4px 0;cursor:pointer"><b>'+T('relRe')+'</b> <span class="muted">（'+info.reopen.length+
+      (S.lang==='zh'?'座':S.lang==='ko'?'개':'城')+'・'+T('relReTap')+'）</span> '+(open?'▾':'▸')+'</div>');
+    hd.onclick=()=>{ if(open) reopenOpen.delete(B.id); else reopenOpen.add(B.id); render(); };
+    box.appendChild(hd);
+    if(open){
+      const w=el('<div class="small" style="line-height:1.9"></div>');
+      info.reopen.forEach(j=>w.appendChild(chip(j)));
+      box.appendChild(w);
+    }
+  }
+  const br=el('<div class="row" style="margin-top:6px"></div>');
+  const addAll=el('<button class="b mint">'+T('relAddAll')+'</button>');
+  if(!info.new.length) addAll.style.display='none';
+  addAll.onclick=()=>{
+    // まとめて追加は新規解放の城だけ（再解放は数が多いので、上の一覧から必要な城だけタップして追加する）
+    const todo=info.new.filter(j=>!inDay.has(j) && allyNear(j));
+    const skipped=info.new.filter(j=>!inDay.has(j) && !allyNear(j)).length;
+    if(!todo.length){ toast(T('relAllAdded')+(skipped?('（'+T('noAlly')+' '+skipped+'）'):'')); return; }
+    todo.forEach(j=>{ const nr=newRowFor(B,j); B.rows.push(nr); });
+    save(); render(); toast('✓ '+todo.length+T('relAdded')+(skipped?('（'+T('noAlly')+' '+skipped+'）'):''));
+  };
+  br.appendChild(addAll);
+  {
+    const addRe=el('<button class="b w">'+T('relAddRe')+'</button>');
+    if(!info.new.length) addRe.style.display='none';
+    addRe.onclick=()=>{
+      if(!reMatch.length){ alert(T('relReNone')); return; }
+      const todo=reMatch.filter(j=>!inDay.has(j));
+      if(!todo.length){ toast(T('relReAllAdded')); return; }
+      todo.forEach(j=>{ const nr=newRowFor(B,j); B.rows.push(nr); });
+      save(); render(); toast('✓ '+todo.length+T('relAdded'));
+    };
+    br.appendChild(addRe);
+  }
+  const recAll=el('<button class="b">'+T('recAll')+'</button>');
+  recAll.onclick=()=>{
+    // 1城ずつ順番に入れていく。recommendGatesは毎回その時点の集計（直前に入れた城の分も含む）を見直すので、
+    // 同じギルドが全部の城で良い門を取ってしまうことがない
+    let total=0;
+    B.rows.forEach(r=>{ const n=recommendGates(B,r); if(n>0){ r.synced=false; total+=n; } });
+    save(); render();
+    if(total>0) toast('✓ '+total+T('recommendFilled')); else alert(T('recAllNone')+'\n'+T('recommendNone'));
+  };
+  br.appendChild(recAll);
+  box.appendChild(br);
+  return box;
 }
 function rowCard(B,r,idx){
   if(!r.id) r.id=uid(); // 既存データ（idなし）にも後から振る。畳み開閉の状態を区別するためだけに使う
@@ -600,7 +909,10 @@ function rowCard(B,r,idx){
   const left=el('<div style="flex:1;cursor:pointer"></div>');
   const warnMark=(r.synced===false)?' <span style="color:#B8860B">⚠</span>':'';
   const sumLine=isOpen?'':(' <span class="muted small">'+(r.occ?('→ '+r.occ):'')+'</span>'+warnMark);
-  left.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b>'+sumLine+'<div class="muted">'+cname3(r.c)+'</div></div>'));
+  const rst=castleStatus(r.c,B.date);
+  const relBadge=rst==='new'?' <span class="chip" style="background:#E3F2FF;color:#245">'+T('badgeNew')+'</span>'
+    :rst==='reopen'?' <span class="chip" style="background:#FFE9D6;color:#7a3b00">'+T('badgeRe')+'</span>':'';
+  left.appendChild(el('<div><span class="lvb">Lv'+c.lv+'</span> <b>'+cname(r.c)+'</b>'+relBadge+sumLine+'<div class="muted">'+cname3(r.c)+'</div></div>'));
   left.onclick=toggle;
   h.appendChild(left);
   const btns=el('<div class="row" style="gap:4px"></div>');
@@ -636,11 +948,44 @@ function rowCard(B,r,idx){
   cap5cb.onchange=()=>{r.cap5=cap5cb.checked||undefined;touchRow(r);};
   cap5row.appendChild(cap5cb); cap5row.appendChild(document.createTextNode(T('cap5')));
   card.appendChild(cap5row);
-
-  const oc=el('<div class="slot"></div>');
+  if(rst==='reopen' && !r.cap5) card.appendChild(el('<div class="warnbox">'+T('reopenHint')+'</div>'));
+  {
+    // 同じ日に別の城にも入っているギルドがいれば知らせる（1ギルド1日1城のルール）
+    const dups=[...usedGuilds(r)].filter(g=>!(holdOnly(B,r,g) && !Object.values(r.a||{}).includes(g) && !(r.ex||[]).includes(g))).map(g=>[g,otherCastleToday(B,r,g)]).filter(x=>x[1]);
+    if(dups.length) card.appendChild(el('<div class="warnbox">⚠ '+dups.map(x=>x[0]+' → '+cname(x[1])).join('、')+'<br>'+T('dupDayNote')+'</div>'));
+  }
+  const oc=el('<div class="slot" style="flex-wrap:wrap"></div>');
   oc.appendChild(el('<div class="lab"><b>'+T('occupier')+'</b></div>'));
-  oc.appendChild(guildSelect(r.occ,v=>{tryAssign(r,v,r.occ,val=>{r.occ=val;touchRow(r);});}));
+  if(rst==='reopen'){
+    // 再解放：城主ギルドが「変更なし」か「変更あり」かをボタンで選ぶ。変更ありの時だけ、新しい城主を選ぶ欄が出る
+    const inc=incumbentOf(B,r), chg=chgMode(B,r);
+    const mk=(txt,on,cls,fn)=>{const b=document.createElement('button'); b.type='button'; b.textContent=txt;
+      b.style.cssText='border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid '+cls[0]+';background:'+(on?cls[0]:'#fff')+';color:'+(on?cls[1]:cls[0]);
+      b.onclick=fn; return b;};
+    const bw=el('<div style="display:flex;gap:6px;flex:1;min-width:0"></div>');
+    bw.appendChild(mk(T('occKeepBtn'),!chg,['#5B8FD9','#fff'],()=>{ r.chg=false; r.occ=inc||''; touchRow(r); }));
+    bw.appendChild(mk(T('occChgBtn'),chg,['#D9534F','#fff'],()=>{ r.chg=true; if(r.occ===inc) r.occ=''; touchRow(r); }));
+    oc.appendChild(bw);
+    if(!chg){
+      oc.appendChild(el('<div class="small" style="flex:0 0 100%;box-sizing:border-box;padding:4px 0 0 102px;color:#5B8FD9;font-weight:700">'+(inc?(T('occHolder')+'：'+inc):T('occHolderNone'))+'</div>'));
+    } else {
+      oc.appendChild(el('<div class="lab" style="flex:0 0 100%;box-sizing:border-box;padding-top:6px"><b style="display:inline;color:#D9534F">'+T('occNewLord')+'</b>'+(inc?('<span class="muted small"> （'+T('occPrev')+'：'+inc+'）</span>'):'')+'</div>'));
+      oc.appendChild(guildSelect(r.occ,v=>{tryAssign(r,v,r.occ,val=>{r.occ=val;touchRow(r);});}));
+    }
+  } else {
+    oc.appendChild(guildSelect(r.occ,v=>{tryAssign(r,v,r.occ,val=>{r.occ=val;touchRow(r);});}));
+    if(rst==='new' && r.occ) oc.appendChild(el('<div class="small" style="flex:0 0 100%;box-sizing:border-box;padding:4px 0 0 102px"><span style="background:#BFE8D4;color:#5A3A2A;border-radius:8px;padding:2px 8px;font-weight:700">'+T('occNew')+'</span></div>'));
+  }
   card.appendChild(oc);
+
+  // 2位以下のおすすめ配分ボタン（1位＝占拠ギルドは対象外。空いている門だけに入力する）
+  const recBtn=el('<button class="b" style="margin:4px 0">'+T('recommend')+'</button>');
+  recBtn.onclick=()=>{
+    const n=recommendGates(B,r);
+    if(n>0){ touchRow(r); toast('✓ '+n+T('recommendFilled')); }
+    else { alert(T('recommendNone')); }
+  };
+  card.appendChild(recBtn);
 
   slots(r.c).forEach(sl=>{
     const s=el('<div class="slot" style="flex-wrap:wrap"></div>');
@@ -653,7 +998,7 @@ function rowCard(B,r,idx){
     // 牽制のみ（門は塗るが実際には入場しない）：予定表には表示するが、報酬計算からは除外する
     const dc=document.createElement('input'); dc.type='checkbox';
     dc.checked=!!(r.noCalc&&r.noCalc[sl.lv]); dc.disabled=!cur;
-    const dl=el('<label class="small" style="display:flex;align-items:center;gap:4px;flex:0 0 100%;margin:2px 0 0 102px;opacity:'+(cur?'1':'.5')+'">'+T('decoy')+'</label>');
+    const dl=el('<label class="small" style="display:flex;align-items:center;gap:4px;flex:0 0 100%;box-sizing:border-box;padding:2px 0 0 102px;margin:0;opacity:'+(cur?'1':'.5')+'">'+T('decoy')+'</label>');
     dl.prepend(dc);
     dc.onchange=()=>{r.noCalc=r.noCalc||{}; if(dc.checked) r.noCalc[sl.lv]=true; else delete r.noCalc[sl.lv]; touchRow(r);};
     s.appendChild(dl);
@@ -675,7 +1020,7 @@ function rowCard(B,r,idx){
   // 結果スクショ添付（任意・順位修正の目安用。自動で数値には反映されません）
   const shotRow=el('<div class="slot" style="align-items:flex-start"></div>');
   shotRow.appendChild(el('<div class="lab"><b>'+(S.lang==='zh'?'結果截圖':S.lang==='ko'?'결과 스샷':'結果スクショ')+'</b>'+(S.lang==='zh'?'（選填・僅供參考，不會自動反映數字。若數字有出入，請用上面的下拉選單修正）':S.lang==='ko'?'（선택・참고용, 숫자에 자동 반영되지 않습니다. 다르면 위의 드롭다운에서 수정해 주세요）':'（任意・見比べ用の参考画像です。数字が違っていたら、上のプルダウンで直してください）')+'</div>'));
-  const shotWrap=el('<div style="flex:1"></div>');
+  const shotWrap=el('<div style="flex:1;min-width:0"></div>');
   if(r.shot){
     const th=el('<img src="'+r.shot+'" style="max-width:120px;border-radius:8px;border:1px solid var(--line);display:block;margin-bottom:6px;cursor:pointer">');
     th.onclick=()=>window.open(r.shot,'_blank');
@@ -697,7 +1042,7 @@ function rowCard(B,r,idx){
         toast('✓ '+(S.lang==='zh'?'已附加':S.lang==='ko'?'첨부됨':'添付しました'));
       });
     };
-    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
+    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*'; fi.style.maxWidth='100%';
     fi.onchange=e=>handleShot(e.target.files[0]);
     shotWrap.appendChild(fi);
     // クリップボードからの貼り付けにも対応（①ここにフォーカスしてCtrl+V、②ボタンで直接読み取り、の2通り）
@@ -1007,11 +1352,11 @@ function renderData(){
       rd.onload=()=>{try{fn(JSON.parse(rd.result));save();render();toast(T('saved'));}
       catch(err){alert('JSON error: '+err.message);}};rd.readAsText(fl);f.value='';};
     w.appendChild(f); return w;};
-  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);},'w'));
+  ir.appendChild(mk(T('imp')+'（'+T('title')+'）',o=>{Object.assign(S,o);fixRewards(S.rewards);},'w'));
   const ex=el('<button class="b p">'+T('exp')+'</button>');
   ex.onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='reward-ledger-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.json';a.click();};
+    a.download='reward-ledger-'+ymdLocal()+'-'+hhmm()+'.json';a.click();};
   ir.appendChild(ex);
   ic.appendChild(ir);
   ic.appendChild(el('<div class="muted small" style="margin:10px 0 6px">'+
@@ -1025,15 +1370,41 @@ function renderData(){
   ic.appendChild(ir2);
   P.appendChild(ic);
 
+  // シーズン最初の城戦の日（城取り計画と同じ）。これで各城戦日にどの城が新規解放／再解放かを計算する
+  const ssc=el('<div class="card"><h2>'+T('seasonStart')+'</h2></div>');
+  const ssi=document.createElement('input'); ssi.type='date'; ssi.value=S.seasonStart||'';
+  ssi.onchange=()=>{S.seasonStart=ssi.value; S.cpU=Date.now(); save(); render();};
+  ssc.appendChild(ssi);
+  ssc.appendChild(el('<div class="muted small" style="margin-top:6px">'+T('seasonStartNote')+'</div>'));
+  {
+    const wd=waveDates();
+    if(wd){
+      const dow=S.lang==='zh'?['日','一','二','三','四','五','六']:S.lang==='ko'?['일','월','화','수','목','금','토']:['日','月','火','水','木','金','土'];
+      const t=wd.map((d,i)=>{const x=parseISOd(d);return '<span style="white-space:nowrap;margin-right:10px">'+CIRC[i]+' '+d.slice(5).replace('-','/')+'('+dow[x.getDay()]+')</span>';}).join(' ');
+      ssc.appendChild(el('<div class="small" style="margin-top:6px;line-height:1.8">'+t+'</div>'));
+    }
+  }
+  P.appendChild(ssc);
+
   // ギルド名簿
   const gc=el('<div class="card"><h2>'+T('guilds')+'（'+S.guilds.length+'）</h2></div>');
   const gw=el('<div></div>');
   S.guilds.slice().sort((a,b)=>a.n.localeCompare(b.n)).forEach(g=>{
+    const row=el('<div class="row" style="margin-bottom:4px;align-items:center"></div>');
     const p=el('<span class="pill"><i style="background:'+g.c+'"></i>'+g.n+'<button>✕</button></span>');
     p.querySelector('i').onclick=()=>{const c=prompt(T('color'),g.c);if(c){g.c=c;save();render();}};
     p.querySelector('button').onclick=()=>{if(confirm(g.n+'\n'+T('confirmDel'))){
       S.guilds=S.guilds.filter(x=>x!==g);save();render();}};
-    gw.appendChild(p);
+    row.appendChild(p);
+    // 拠点州：2位以下のおすすめ配分（近くの州にいるギルドを優先）で使う任意情報
+    const ps=document.createElement('select');
+    ps.appendChild(new Option(T('provNone'),''));
+    SEED.provs.forEach((pv,i)=>ps.appendChild(new Option(pname(i),i)));
+    ps.value=(g.prov===undefined||g.prov===null)?'':g.prov;
+    ps.onchange=()=>{g.prov=ps.value===''?undefined:Number(ps.value);g.pu=Date.now();save();};
+    row.appendChild(el('<span class="muted small">'+T('guildProv')+'</span>'));
+    row.appendChild(ps);
+    gw.appendChild(row);
   });
   gc.appendChild(gw);
   const ga=el('<button class="b" style="margin-top:6px">＋ '+T('add')+'</button>');
@@ -1113,6 +1484,26 @@ function importCastlePlan(o){
   const gc=o.gcol||{};
   Object.keys(gc).forEach(n=>{const x=normGuild(n);if(x)addGuild(x,gc[n]);});
   Object.keys(o.assign||{}).forEach(c=>{const x=normGuild(o.assign[c]);if(x)addGuild(x);});
+  // シーズン最初の城戦の日と、各城を取る予定のギルド（城主＝1位）も覚えておく。
+  // これで「この日はどの城が新規解放／再解放か」「その城の城主は誰か」が報酬台帳側でも分かる
+  if(o.start) S.seasonStart=o.start;
+  if(o.assign && typeof o.assign==='object') S.cpAssign=JSON.parse(JSON.stringify(o.assign));
+  S.cpU=Date.now();
+  return fillReopenOcc();
+}
+// すでに追加してある再解放の城で、城主が空欄のものに城取り計画の割当を入れる。
+// 過去の城戦は実際の記録を優先して触らない（今日以降の城戦だけ）。入れた行は「これでOK」待ちになる
+function fillReopenOcc(){
+  const today=isoOf(new Date()); let n=0;
+  (S.battles||[]).forEach(B=>{
+    if(!B.date || B.date<today) return;
+    (B.rows||[]).forEach(r=>{
+      if(r.occ || castleStatus(r.c,B.date)!=='reopen') return;
+      const o=cpOcc(r.c); if(!o) return;
+      addGuild(o); r.occ=o; r.cap5=true; r.synced=false; n++;
+    });
+  });
+  return n;
 }
 function autofill(){ // 3体わかっていれば4体目を推定。位置未記録の★門があれば、そこが4体目と分かるので座標も付ける
   Object.keys(S.boss).forEach(j=>{
@@ -1135,7 +1526,7 @@ async function doPull(loud){
     const r=await fetch('/api/sync',{cache:'no-store'});
     if(!r.ok)throw new Error(r.status);
     const o=await r.json();
-    if(o&&o.u&&o.u>(S.u||0)){Object.assign(S,o);try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+    if(o&&o.u&&o.u>(S.u||0)){Object.assign(S,o);fixRewards(S.rewards);try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
       if(loud)toast('⬇ OK');render();}
     else if(loud)toast('⬇ —');
     st('⬇ '+new Date().toLocaleTimeString());
@@ -1157,11 +1548,22 @@ function mergeRowIntoRemote(remote,B,r){
   base.battles=Array.isArray(base.battles)?base.battles:[];
   base.guilds=Array.isArray(base.guilds)?base.guilds:[];
   base.rewards=base.rewards||S.rewards;
+  fixRewards(base.rewards);
   base.boss=base.boss||S.boss;
   base.expectPresets=Array.isArray(base.expectPresets)?base.expectPresets:(S.expectPresets||[]);
   base.sumHiddenGuilds=Array.isArray(base.sumHiddenGuilds)?base.sumHiddenGuilds:(S.sumHiddenGuilds||[]);
+  // 城取り計画から取り込んだシーズン開始日・城主割当は、新しく取り込んだ方を優先する
+  if((S.cpU||0)>(base.cpU||0)){
+    base.seasonStart=S.seasonStart; base.cpU=S.cpU;
+    if(S.cpAssign) base.cpAssign=S.cpAssign; // 日付だけ手入力した端末が、他の端末で取り込んだ城主割当を消さないように
+  }
   // ギルド一覧：自分の画面にしかない新しいギルドだけ追加する（既存分の並び・色はサーバー側を尊重）
   (S.guilds||[]).forEach(g=>{ if(!base.guilds.some(x=>x.n===g.n)) base.guilds.push(g); });
+  // 拠点州（prov）は、この端末で後から設定・変更した方が新しければそれを反映する
+  (S.guilds||[]).forEach(g=>{
+    const rg=base.guilds.find(x=>x.n===g.n);
+    if(rg && rg!==g && (g.pu||0)>(rg.pu||0)){ rg.prov=g.prov; rg.pu=g.pu; }
+  });
   // この城戦日（battle）がサーバーにまだ無ければ丸ごと追加。あれば「このOKを押した城（行）」だけ差し替える
   const bi=base.battles.findIndex(x=>x.id===B.id);
   if(bi<0){
@@ -1292,17 +1694,20 @@ function exportSumPNG(tv){
   const cv=document.createElement('canvas');
   drawSumCanvas(tv,cv);
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
-    a.download='summary-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.png';a.click();});
+    a.download='summary-'+ymdLocal()+'-'+hhmm()+'.png';a.click();});
 }
 
 /* ---------- PNG出力（入場予定表） ---------- */
 // battles: 城戦の配列（1件でも複数でもOK）。複数日をまとめる場合は日付ごとに区切り帯を挟む
+// ダウンロード名に付ける出力時刻（HHMM、端末の時刻）。同じ名前で(1)(2)と増えて新旧が分からなくなるのを防ぐ
+function hhmm(){const d=new Date();return ('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2);}
+function ymdLocal(){return isoOf(new Date()).replace(/-/g,'');}
 function exportPNG(battles){
   const cv=document.getElementById('cv');
   const titleTxt=drawEntryCanvas(battles,cv);
   if(titleTxt===null){alert(T('noData'));return;}
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
-    a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'.png';a.click();});
+    a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'-'+hhmm()+'.png';a.click();});
 }
 // battles を指定の canvas 要素に描画する。データが無ければ null を返す（呼び出し側で noData 表示など判断）。
 // プレビュー用・保存用のどちらにも使う共通ロジック。
@@ -1523,7 +1928,7 @@ function exportGatePNG(battles){
   });
 
   cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
-    a.download='gate-plan.png';a.click();});
+    a.download='gate-plan-'+ymdLocal()+'-'+hhmm()+'.png';a.click();});
 }
 
 /* ---------- 起動 ---------- */
