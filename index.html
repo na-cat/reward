@@ -285,9 +285,9 @@ function castlesOn(date){
 // S.myCoord＝この端末の人が属する取りまとめ（端末ごと）。おすすめ・まとめて追加は、この管轄のギルドだけで考える。
 const DEFAULT_COORDS=[{g:'暮色晨光',provs:[0,1,2]},{g:'ラーメン',provs:[9,10,11]},{g:'天涯海閣',provs:[3,4,5]}];
 function coordOfProv(p){ const c=(S.coords||[]).find(c=>(c.provs||[]).includes(+p)); return c?c.g:''; }
-// 名簿のブロックの色：管轄（取りまとめ）ごとに同じ色。ラーメン＝黄、暮色晨光＝青、天涯海閣＝緑。追加した取りまとめは順番に別の色
-const COORD_COLORS={'ラーメン':['#FFF3C2','#E6C245'],'暮色晨光':['#E1EDFB','#8DB3E6'],'天涯海閣':['#E1F2E5','#8CCB9D']};
-const COORD_EXTRA=[['#EFE6F9','#B79BE0'],['#FDE6D3','#EBA977'],['#FBE4EC','#E59BB5'],['#E0F3F3','#86C7C7']];
+// 名簿のブロックの色：管轄（取りまとめ）ごとに同じ色。ラーメン＝黄、暮色晨光＝紫、天涯海閣＝ピンク。追加した取りまとめは順番に別の色（最初は緑＝雲垣・隕隙・穹谷方面用）
+const COORD_COLORS={'ラーメン':['#FFF3C2','#E6C245'],'暮色晨光':['#EFE6F9','#B79BE0'],'天涯海閣':['#FBE4EC','#E59BB5']};
+const COORD_EXTRA=[['#E1F2E5','#8CCB9D'],['#E1EDFB','#8DB3E6'],['#FDE6D3','#EBA977'],['#E0F3F3','#86C7C7']];
 const COORD_NONE=['#F3F0EA','#CFC6B8'];
 function coordColor(name){
   if(!name) return COORD_NONE;
@@ -664,7 +664,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019p';
+const BUILD='1019q';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
