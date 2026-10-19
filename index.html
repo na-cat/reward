@@ -126,7 +126,7 @@ const L = {
   seasonStart:'シーズン最初の城戦の日（城取り計画と同じ日付）',seasonStartNote:'城取り計画のJSONを読み込むと自動で入ります。城主（1位）の割当も一緒に取り込まれます。',
   badgeNew:'新規解放',badgeRe:'再解放',
   reopenHint:'この日はこの城の再解放日です。防衛戦（城主＋門4ギルド）なら上の5ギルドのチェックを入れてください。',
-  occNew:'新規占領',holderNoReward:'0（城主・防衛のみ。累計に入れません）',otherGuilds:'その他（敵など）',allyNote:'味方ギルドは、ギルドエンブレム一覧メーカーの味方シートから自動で読み込みます。プルダウンにも味方だけが出ます。拠点州は、過去の城戦でより良い場所（外側の州→天野・雲垣・天柩・雲澤→翼都）の城を取ると自動で引っ越します',allyNotLoaded:'味方シートをまだ読み込めていないので、全ギルドを表示しています',provAuto:'自動更新',occKeepBtn:'変更なし',occChgBtn:'変更あり',occHolder:'この日の城主',occHolderNone:'城主の記録なし（城取り計画にも割当なし）',occNewLord:'新しい城主ギルド',occPrev:'前の城主',dupDay1:' は、この日すでに「',dupDay2:'」に入っています。1つのギルドが同じ日に入れる城は1つだけです。それでもここに入れますか？',dupDayNote:'このギルドは同じ日に別の城にも入っています（1ギルドが同じ日に入れる城は1つだけです）'},
+  occNew:'新規占領',coordTitle:'取りまとめ（管轄）',coordNote:'各方面のギルドの予定を作る「取りまとめギルド」と、担当する州を登録します（全員で共有）。各ギルドの取りまとめは、拠点州から自動で決まります。翼都に引っ越したギルドは元の方面の取りまとめのままです。ギルド名簿で手で変えることもできます。',coordMine:'この端末で使う取りまとめ',coordAll:'（指定しない＝全員）',coordCount:'管轄のギルド：',coordProvs:'担当の州：',coordAdd:'取りまとめギルドを追加',coordNone:'（なし）',coordLabel:'取りまとめ',restoreBtn:'入場表の画像から復旧',restoreAskDate:'この画像の城戦の日付を入力してください（例：2026-10-19）',restoreNone:'画像から城を読み取れませんでした',restoreNotEntry:'報酬台帳の入場表の画像ではないようです',restoreConfirm:'画像から次の内容を復旧します。同じ日付の城戦に同じ城があれば、画像の内容で上書きします。',restoreVisualNote:'※この画像にはデータが埋め込まれていないので、文字の形から読み取りました。復旧後に内容を確認してください。',restoreSend:'復旧した内容を、このまま送信しますか？（あとでデータタブの「送信」でも送れます）',conflict1:' は、あなたが開いた後に他の人が更新しています',conflict2:'。\nあなたの内容で上書きしますか？\n（キャンセルすると、相手の内容を表示します）',conflictMany:'上の城は、あなたが開いた後に他の人が更新しています。あなたの内容で上書きしますか？（キャンセルすると、その城は相手の内容のままにします）',holderNoReward:'0（城主・防衛のみ。累計に入れません）',otherGuilds:'その他（敵など）',allyNote:'味方ギルドは、ギルドエンブレム一覧メーカーの味方シートから自動で読み込みます。プルダウンにも味方だけが出ます。拠点州は、過去の城戦でより良い場所（外側の州→天野・雲垣・天柩・雲澤→翼都）の城を取ると自動で引っ越します',allyNotLoaded:'味方シートをまだ読み込めていないので、全ギルドを表示しています',provAuto:'自動更新',occKeepBtn:'変更なし',occChgBtn:'変更あり',occHolder:'この日の城主',occHolderNone:'城主の記録なし（城取り計画にも割当なし）',occNewLord:'新しい城主ギルド',occPrev:'前の城主',dupDay1:' は、この日すでに「',dupDay2:'」に入っています。1つのギルドが同じ日に入れる城は1つだけです。それでもここに入れますか？',dupDayNote:'このギルドは同じ日に別の城にも入っています（1ギルドが同じ日に入れる城は1つだけです）'},
  zh:{title:'獎勵台帳',plan:'預定',sum:'統計',castle:'城池',data:'資料',
   date:'攻城日',addCastle:'新增城池',prov:'州',city:'城池',occupier:'佔領城池的公會',
   none:'（未定）',closed:'閉門・分配',gate:'號門',star:'專屬',
@@ -165,7 +165,7 @@ const L = {
   seasonStart:'賽季首次城戰日期（與攻城計畫相同）',seasonStartNote:'讀取攻城計畫的JSON後會自動填入，城主（第1名）的分配也會一起帶入。',
   badgeNew:'首次開放',badgeRe:'重新開放',
   reopenHint:'當天是這座城池的重新開放日。若是防衛戰（城主＋城門4個公會），請勾選上方的5個公會選項。',
-  occNew:'新佔領',holderNoReward:'0（城主・僅防守，不計入累計）',otherGuilds:'其他（敵方等）',allyNote:'我方公會會自動從公會徽章一覽的我方名單讀取，下拉選單也只顯示我方。據點州會在過去的城戰中拿下更好位置（外圍州→天野・雲垣・天樞・雲澤→翼都）的城池時自動搬遷',allyNotLoaded:'尚未讀取到我方名單，因此顯示所有公會',provAuto:'自動更新',occKeepBtn:'無變更',occChgBtn:'有變更',occHolder:'當天城主',occHolderNone:'沒有城主記錄（攻城計畫也沒有分配）',occNewLord:'新城主公會',occPrev:'前任城主',dupDay1:' 當天已經在「',dupDay2:'」了。一個公會同一天只能進入一座城池。仍要放在這裡嗎？',dupDayNote:'這個公會當天也在其他城池（一個公會同一天只能進入一座城池）'},
+  occNew:'新佔領',coordTitle:'統籌（管轄）',coordNote:'登錄負責製作各方面公會行程的「統籌公會」及其負責的州（全員共用）。各公會的統籌會依據點州自動決定。搬到翼都的公會仍維持原方面的統籌。也可以在公會名冊手動更改。',coordMine:'這台裝置使用的統籌',coordAll:'（不指定＝全部）',coordCount:'管轄公會：',coordProvs:'負責的州：',coordAdd:'新增統籌公會',coordNone:'（無）',coordLabel:'統籌',restoreBtn:'從入場表圖片復原',restoreAskDate:'請輸入這張圖片的城戰日期（例：2026-10-19）',restoreNone:'無法從圖片讀取城池',restoreNotEntry:'這似乎不是獎勵台帳的入場表圖片',restoreConfirm:'將從圖片復原以下內容。同日期城戰中若有相同城池，會以圖片內容覆蓋。',restoreVisualNote:'※這張圖片沒有嵌入資料，是從文字形狀讀取的。復原後請確認內容。',restoreSend:'要直接送出復原的內容嗎？（之後也可以在資料分頁按「傳送」）',conflict1:' 在您打開之後已被其他人更新',conflict2:'。\n要用您的內容覆蓋嗎？\n（取消則顯示對方的內容）',conflictMany:'以上城池在您打開之後已被其他人更新。要用您的內容覆蓋嗎？（取消則保留對方的內容）',holderNoReward:'0（城主・僅防守，不計入累計）',otherGuilds:'其他（敵方等）',allyNote:'我方公會會自動從公會徽章一覽的我方名單讀取，下拉選單也只顯示我方。據點州會在過去的城戰中拿下更好位置（外圍州→天野・雲垣・天樞・雲澤→翼都）的城池時自動搬遷',allyNotLoaded:'尚未讀取到我方名單，因此顯示所有公會',provAuto:'自動更新',occKeepBtn:'無變更',occChgBtn:'有變更',occHolder:'當天城主',occHolderNone:'沒有城主記錄（攻城計畫也沒有分配）',occNewLord:'新城主公會',occPrev:'前任城主',dupDay1:' 當天已經在「',dupDay2:'」了。一個公會同一天只能進入一座城池。仍要放在這裡嗎？',dupDayNote:'這個公會當天也在其他城池（一個公會同一天只能進入一座城池）'},
  ko:{title:'보상 장부',plan:'예정',sum:'집계',castle:'성',data:'데이터',
   date:'성전 날짜',addCastle:'성 추가',prov:'주',city:'성',occupier:'성을 점령하는 길드',
   none:'（미정）',closed:'폐문・분배',gate:'번 문',star:'전속',
@@ -204,7 +204,7 @@ const L = {
   seasonStart:'시즌 첫 성전 날짜（성 공략 계획과 같은 날짜）',seasonStartNote:'성 공략 계획 JSON을 읽어오면 자동으로 입력됩니다. 성주（1위） 배정도 함께 가져옵니다.',
   badgeNew:'신규 개방',badgeRe:'재개방',
   reopenHint:'이 날은 이 성의 재개방일입니다. 방어전（성주＋문 4길드）이라면 위의 5길드 체크를 켜 주세요.',
-  occNew:'신규 점령',holderNoReward:'0（성주・방어만, 누계에 넣지 않음）',otherGuilds:'기타（적 등）',allyNote:'아군 길드는 길드 엠블럼 목록 메이커의 아군 시트에서 자동으로 불러옵니다. 드롭다운에도 아군만 표시됩니다. 거점 주는 지난 성전에서 더 좋은 위치（외곽 주→천야・운원・천추・운택→익도）의 성을 차지하면 자동으로 이사합니다',allyNotLoaded:'아군 시트를 아직 불러오지 못해 모든 길드를 표시하고 있습니다',provAuto:'자동 갱신',occKeepBtn:'변경 없음',occChgBtn:'변경 있음',occHolder:'이날의 성주',occHolderNone:'성주 기록 없음（성 공략 계획에도 배정 없음）',occNewLord:'새 성주 길드',occPrev:'이전 성주',dupDay1:' 은(는) 이 날 이미 「',dupDay2:'」에 들어가 있습니다. 한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다. 그래도 여기에 넣으시겠습니까？',dupDayNote:'이 길드는 같은 날 다른 성에도 들어가 있습니다（한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다）'}
+  occNew:'신규 점령',coordTitle:'총괄（관할）',coordNote:'각 방면 길드의 일정을 만드는 「총괄 길드」와 담당 주를 등록합니다（모두 공유）. 각 길드의 총괄은 거점 주로 자동 결정됩니다. 익도로 이사한 길드는 원래 방면의 총괄 그대로입니다. 길드 명부에서 직접 바꿀 수도 있습니다.',coordMine:'이 기기에서 사용할 총괄',coordAll:'（지정 안 함＝전체）',coordCount:'관할 길드：',coordProvs:'담당 주：',coordAdd:'총괄 길드 추가',coordNone:'（없음）',coordLabel:'총괄',restoreBtn:'입장표 이미지로 복구',restoreAskDate:'이 이미지의 성전 날짜를 입력해 주세요（예：2026-10-19）',restoreNone:'이미지에서 성을 읽지 못했습니다',restoreNotEntry:'보상 장부의 입장표 이미지가 아닌 것 같습니다',restoreConfirm:'이미지에서 다음 내용을 복구합니다. 같은 날짜 성전에 같은 성이 있으면 이미지 내용으로 덮어씁니다.',restoreVisualNote:'※이 이미지에는 데이터가 들어 있지 않아 글자 모양으로 읽었습니다. 복구 후 내용을 확인해 주세요.',restoreSend:'복구한 내용을 바로 보낼까요？（나중에 데이터 탭의「보내기」로도 보낼 수 있습니다）',conflict1:' 은(는) 당신이 연 뒤에 다른 사람이 갱신했습니다',conflict2:'。\n당신의 내용으로 덮어쓸까요？\n（취소하면 상대의 내용을 표시합니다）',conflictMany:'위 성들은 당신이 연 뒤에 다른 사람이 갱신했습니다. 당신의 내용으로 덮어쓸까요？（취소하면 그 성은 상대의 내용으로 둡니다）',holderNoReward:'0（성주・방어만, 누계에 넣지 않음）',otherGuilds:'기타（적 등）',allyNote:'아군 길드는 길드 엠블럼 목록 메이커의 아군 시트에서 자동으로 불러옵니다. 드롭다운에도 아군만 표시됩니다. 거점 주는 지난 성전에서 더 좋은 위치（외곽 주→천야・운원・천추・운택→익도）의 성을 차지하면 자동으로 이사합니다',allyNotLoaded:'아군 시트를 아직 불러오지 못해 모든 길드를 표시하고 있습니다',provAuto:'자동 갱신',occKeepBtn:'변경 없음',occChgBtn:'변경 있음',occHolder:'이날의 성주',occHolderNone:'성주 기록 없음（성 공략 계획에도 배정 없음）',occNewLord:'새 성주 길드',occPrev:'이전 성주',dupDay1:' 은(는) 이 날 이미 「',dupDay2:'」에 들어가 있습니다. 한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다. 그래도 여기에 넣으시겠습니까？',dupDayNote:'이 길드는 같은 날 다른 성에도 들어가 있습니다（한 길드는 같은 날 하나의 성에만 들어갈 수 있습니다）'}
 };
 const FAC=[{ja:'工場',zh:'工廠',ko:'공장'},{ja:'書院',zh:'書院',ko:'서원'},
            {ja:'医療院',zh:'醫療院',ko:'의료원'},{ja:'武器庫',zh:'武器庫',ko:'무기고'}];
@@ -279,8 +279,35 @@ function castlesOn(date){
 // その日に新規解放がある州ごとに、その州の新規解放の城の一番高いLvを基準にして、同じ州の再解放の城から選ぶ（該当が複数あれば全部）
 // 味方ギルドが1つもいないエリアの城は、まとめて追加の対象外にする。
 // エリア＝その城の州＋隣接州（おすすめ配分の候補範囲と同じ）。拠点州を設定したギルドが1つもない時は絞り込まない
+// ===== 取りまとめ（管轄） =====
+// 同盟の予定は、リーダー格のギルド（取りまとめ）がそれぞれの方面のギルドの分を作る。
+// S.coords＝[{g:取りまとめギルド, provs:[担当の州]}]（全端末で共有）。各ギルドの g.coord＝そのギルドの取りまとめ（共有）。
+// S.myCoord＝この端末の人が属する取りまとめ（端末ごと）。おすすめ・まとめて追加は、この管轄のギルドだけで考える。
+const DEFAULT_COORDS=[{g:'暮色晨光',provs:[0,1,2]},{g:'ラーメン',provs:[9,10,11]},{g:'天涯海閣',provs:[3,4,5]}];
+function coordOfProv(p){ const c=(S.coords||[]).find(c=>(c.provs||[]).includes(+p)); return c?c.g:''; }
+// 拠点州から取りまとめを自動で決める。翼都に引っ越したギルドは、元の方面の取りまとめのまま（手で決めた分は変えない）
+function autoCoord(){
+  let ch=false;
+  S.guilds.forEach(g=>{
+    if(!isAlly(g.n)) return;
+    let c=(g.prov===undefined||g.prov===null||g.prov==='')?'':coordOfProv(g.prov);
+    if(!c && !g.coord){
+      // 翼都にいる・拠点州が空欄のギルドは、過去の城戦で入った城（翼都以外）の方面で一番多い取りまとめにする
+      const cnt={};
+      (S.battles||[]).forEach(b=>(b.rows||[]).forEach(r=>{
+        const inR=r.occ===g.n || Object.values(r.a||{}).includes(g.n) || (r.ex||[]).includes(g.n); if(!inR) return;
+        const cc=CITY[r.c]&&coordOfProv(CITY[r.c].p); if(cc) cnt[cc]=(cnt[cc]||0)+1; }));
+      c=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';
+    }
+    if(!c) return;
+    if(!g.coord || (g.cauto && g.coord!==c)){ if(g.coord!==c){ g.coord=c; g.cauto=1; g.cu=Date.now(); ch=true; } }
+  });
+  return ch;
+}
+// おすすめ・まとめて追加で使うギルド（この端末の取りまとめが決まっていれば、その管轄だけ）
+function myGuild(g){ return isAlly(g.n) && (!S.myCoord || g.coord===S.myCoord); }
 function allyNear(j){
-  const provs=new Set(S.guilds.filter(g=>isAlly(g.n) && g.prov!==undefined&&g.prov!==null&&g.prov!=='').map(g=>+g.prov));
+  const provs=new Set(S.guilds.filter(g=>myGuild(g) && g.prov!==undefined&&g.prov!==null&&g.prov!=='').map(g=>+g.prov));
   if(!provs.size) return true;
   const c=CITY[j]; if(!c) return true;
   return [c.p,...(PROV_ADJ[c.p]||[])].some(p=>provs.has(p));
@@ -324,6 +351,7 @@ function load(){
   if(!S.guilds) S.guilds=[];
   if(!S.battles) S.battles=[];
   if(!S.expectPresets) S.expectPresets=[];
+  if(!S.del) S.del={};
   repairCoords();
   const first=S.battles.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   if(first) expanded.add(first.id);
@@ -597,7 +625,7 @@ function recommendGates(B,r){
   }
   const allowedProv=new Set([city.p, ...(PROV_ADJ[city.p]||[])]);
   const already=usedGuilds(r);
-  let pool=S.guilds.filter(g=>isAlly(g.n) && g.prov!==undefined && g.prov!==null && allowedProv.has(g.prov) && g.n!==r.occ && !already.has(g.n) && !(incumbent && g.n===incumbent));
+  let pool=S.guilds.filter(g=>myGuild(g) && g.prov!==undefined && g.prov!==null && allowedProv.has(g.prov) && g.n!==r.occ && !already.has(g.n) && !(incumbent && g.n===incumbent));
   // ↑譲渡の日の元の城主は、ふつう防衛戦に出ない（他の城に行くこともある）ので、2位以下の候補にもしない
   if(B.expect && B.expect.length){
     const filtered=pool.filter(g=>B.expect.includes(g.n));
@@ -624,7 +652,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019l';
+const BUILD='1019n';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -641,7 +669,8 @@ window.addEventListener('unhandledrejection',e=>showErr('通信など: '+((e.rea
 const TABS=['plan','sum','castle','data'];
 let tab='plan';
 function render(){
-  if(autoProv()) save();
+  if(!S.coords){ S.coords=cloneJ(DEFAULT_COORDS); S.coU=1; }
+  if(autoCoord()|autoProv()) save();
   document.getElementById('ttl').innerHTML=T('title')+' <span style="font-size:10px;font-weight:400;color:#8A7D6E">v'+BUILD+'</span>';
   document.documentElement.lang=S.lang==='zh'?'zh-Hant':S.lang==='ko'?'ko':'ja';
   document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
@@ -702,9 +731,10 @@ function renderPlan(){
   const head=el('<div class="card"></div>');
   const r1=el('<div class="row"></div>');
   const nb=el('<button class="b p">＋ '+T('newBattle')+'</button>');
-  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:S.authorFilter||'',chk:false,expect:[]}; // 入力者で絞り込み中なら、その人の城戦として作る（作った城戦が絞り込みで隠れて「追加できない」ように見えるのを防ぐ）
+  nb.onclick=()=>{const b={id:uid(),date:new Date().toISOString().slice(0,10),rows:[],author:S.authorFilter||'',chk:false,expect:[],synced:false}; // 入力者で絞り込み中なら、その人の城戦として作る（作った城戦が絞り込みで隠れて「追加できない」ように見えるのを防ぐ）
     try{S.battles.unshift(b);S.cur=b.id;expanded=new Set([b.id]);save();render();toast('✓ '+b.date+' ('+S.battles.length+')');}catch(err){showErr('城戦を作る処理でエラー: '+err.message);}};
   r1.appendChild(nb);
+  r1.appendChild(restoreButton());
   const authors=authorList();
   if(authors.length){
     const af=document.createElement('select');
@@ -744,7 +774,7 @@ function battleCard(B){
   const left=el('<div class="row" style="flex:1"></div>');
   const chk=document.createElement('input'); chk.type='checkbox'; chk.checked=!!B.chk;
   chk.onclick=(e)=>{e.stopPropagation();};
-  chk.onchange=()=>{B.chk=chk.checked;save();};
+  chk.onchange=()=>{B.chk=chk.checked;B.synced=false;save();};
   left.appendChild(chk);
   left.appendChild(el('<div><b>'+(B.date||'----')+'</b> <span class="muted small">'+B.rows.length+(S.lang==='zh'?'座城池':S.lang==='ko'?'개 성':'城')+
     (B.author?(' ・ '+B.author):'')+'</span></div>'));
@@ -766,14 +796,14 @@ function battleCard(B){
   const c2=el('<div style="margin-top:10px"></div>');
   const rd=el('<div class="row"></div>');
   const di=document.createElement('input'); di.type='date'; di.value=B.date||'';
-  di.onchange=()=>{B.date=di.value;save();render();};
+  di.onchange=()=>{B.date=di.value;B.synced=false;save();render();};
   rd.appendChild(el('<span class="muted">'+T('date')+'</span>')); rd.appendChild(di);
   const au=document.createElement('input'); au.type='text'; au.placeholder=(S.lang==='zh'?'輸入者（選填）':S.lang==='ko'?'입력자（선택）':'入力者（任意）');
   au.value=B.author||''; au.style.width='120px';
-  au.onchange=()=>{B.author=au.value.trim();save();render();};
+  au.onchange=()=>{B.author=au.value.trim();B.synced=false;save();render();};
   rd.appendChild(au);
   const dl=el('<button class="b d">'+T('del')+'</button>');
-  dl.onclick=()=>{if(confirm(T('confirmDel'))){S.battles=S.battles.filter(x=>x.id!==B.id);save();render();}};
+  dl.onclick=()=>{if(confirm(T('confirmDel'))){S.del=S.del||{};const t=Date.now();S.del[B.id]=t;(B.rows||[]).forEach(r=>S.del[r.id]=t);S.battles=S.battles.filter(x=>x.id!==B.id);save();render();pushDeletes();}};
   rd.appendChild(dl);
   const pg1=el('<button class="b g">'+(S.lang==='zh'?'入場表':S.lang==='ko'?'입장표':'入場表')+'</button>'); pg1.onclick=()=>exportPNG([B]); rd.appendChild(pg1);
   const pg2=el('<button class="b g">'+(S.lang==='zh'?'門配置圖':S.lang==='ko'?'문 배치도':'門配置図')+'</button>'); pg2.onclick=()=>exportGatePNG([B]); rd.appendChild(pg2);
@@ -788,10 +818,10 @@ function battleCard(B){
   exp.appendChild(el('<span class="muted small" style="margin-right:4px">'+T('expectLabel')+'</span>'));
   (B.expect||[]).forEach((g,i)=>{
     const p=el('<span class="pill"><i style="background:'+gcolor(g)+'"></i>'+g+'<button>✕</button></span>');
-    p.querySelector('button').onclick=()=>{B.expect.splice(i,1);save();render();};
+    p.querySelector('button').onclick=()=>{B.expect.splice(i,1);B.synced=false;save();render();};
     exp.appendChild(p);
   });
-  const expAdd=guildSelect('',v=>{if(!v)return; B.expect=B.expect||[]; if(!B.expect.includes(v))B.expect.push(v); save();render();});
+  const expAdd=guildSelect('',v=>{if(!v)return; B.expect=B.expect||[]; if(!B.expect.includes(v))B.expect.push(v); B.synced=false; save();render();});
   exp.appendChild(expAdd);
   c2.appendChild(exp);
 
@@ -803,7 +833,7 @@ function battleCard(B){
   psel.onchange=()=>{
     if(!psel.value)return;
     const p=(S.expectPresets||[]).find(x=>x.id===psel.value);
-    if(p){ B.expect=p.guilds.slice(); save(); render(); }
+    if(p){ B.expect=p.guilds.slice(); B.synced=false; save(); render(); }
   };
   pr.appendChild(psel);
   const psave=el('<button class="b">💾 '+T('presetSave')+'</button>');
@@ -966,7 +996,7 @@ function rowCard(B,r,idx){
   // ✕（削除）は誤タップで消してしまわないよう、畳む／▲▼ボタンから離してパネルの一番左に置く。
   // 押し間違い対策として確認ダイアログも必須にする
   const x=el('<button class="b d" style="padding:2px 8px">✕</button>');
-  x.onclick=()=>{ if(confirm(T('confirmDel'))){ B.rows.splice(idx,1); save(); render(); } };
+  x.onclick=()=>{ if(confirm(T('confirmDel'))){ S.del=S.del||{}; S.del[r.id]=Date.now(); B.rows.splice(idx,1); save(); render(); pushDeletes(); } };
   h.appendChild(x);
   const left=el('<div style="flex:1;cursor:pointer"></div>');
   const warnMark=(r.synced===false)?' <span style="color:#B8860B">⚠</span>':'';
@@ -1233,7 +1263,7 @@ function rowCard(B,r,idx){
     (r.synced?('✓ '+(S.lang==='zh'?'已送出':S.lang==='ko'?'전송됨':'送信済み'))
              :(S.lang==='zh'?'這樣可以了（送出）':S.lang==='ko'?'이걸로 완료（전송）':'これでOK（送信）'))+
     '</button>');
-  okBtn.onclick=()=>{ r.synced=true; save(); render(); pushRow(B,r); };
+  okBtn.onclick=()=>{ okBtn.disabled=true; pushRow(B,r); };
   syncRow.appendChild(okBtn);
   card.appendChild(syncRow);
 
@@ -1472,6 +1502,14 @@ function renderData(){
     row.appendChild(el('<span class="muted small">'+T('guildProv')+'</span>'));
     row.appendChild(ps);
     if(g.pauto) row.appendChild(el('<span class="small" style="color:#5B8FD9">'+T('provAuto')+'</span>'));
+    // 取りまとめ（管轄）
+    const cs=document.createElement('select');
+    cs.appendChild(new Option(T('coordNone'),''));
+    (S.coords||[]).forEach(c=>cs.appendChild(new Option(c.g,c.g)));
+    cs.value=g.coord||'';
+    cs.onchange=()=>{ g.coord=cs.value; g.cauto=0; g.cu=Date.now(); save(); render(); };
+    row.appendChild(el('<span class="muted small">'+T('coordLabel')+'</span>'));
+    row.appendChild(cs);
     gw.appendChild(row);
   });
   if(otherG.length){
@@ -1487,6 +1525,38 @@ function renderData(){
   const ga=el('<button class="b" style="margin-top:6px">＋ '+T('add')+'</button>');
   ga.onclick=()=>{const n=prompt(T('guildName'));if(n&&n.trim()){addGuild(n.trim());save();render();}};
   gc.appendChild(ga); P.appendChild(gc);
+
+  // 取りまとめ（管轄）の設定
+  {
+    const cc=el('<div class="card"><h2>'+T('coordTitle')+'</h2><div class="muted small" style="margin-bottom:8px">'+T('coordNote')+'</div></div>');
+    const me=el('<div class="row" style="align-items:center;margin-bottom:10px"><b class="small">'+T('coordMine')+'</b></div>');
+    const ms=document.createElement('select'); ms.appendChild(new Option(T('coordAll'),''));
+    (S.coords||[]).forEach(c=>ms.appendChild(new Option(c.g,c.g))); ms.value=S.myCoord||'';
+    ms.onchange=()=>{ S.myCoord=ms.value; saveLocal(); render(); };
+    me.appendChild(ms); cc.appendChild(me);
+    (S.coords||[]).forEach((c,ci)=>{
+      const box=el('<div style="border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:6px"></div>');
+      const hd=el('<div class="row" style="align-items:center;margin-bottom:4px"></div>');
+      hd.appendChild(guildSelect(c.g,v=>{ if(!v) return; S.guilds.forEach(g=>{ if(g.coord===c.g){ g.coord=v; g.cu=Date.now(); } }); if(S.myCoord===c.g) S.myCoord=v; c.g=v; S.coU=Date.now(); save(); render(); }));
+      const n=S.guilds.filter(g=>isAlly(g.n)&&g.coord===c.g).length;
+      hd.appendChild(el('<span class="muted small">'+T('coordCount')+n+'</span>'));
+      const del=el('<button class="b d" style="padding:2px 8px">✕</button>');
+      del.onclick=()=>{ if(confirm(c.g+'\n'+T('confirmDel'))){ S.coords.splice(ci,1); S.guilds.forEach(g=>{ if(g.coord===c.g){ g.coord=''; g.cu=Date.now(); } }); if(S.myCoord===c.g) S.myCoord=''; S.coU=Date.now(); save(); render(); } };
+      hd.appendChild(del); box.appendChild(hd);
+      const pw=el('<div class="small" style="line-height:2"><span class="muted">'+T('coordProvs')+'</span> </div>');
+      SEED.provs.forEach((pv,i)=>{
+        const on=(c.provs||[]).includes(i), other=!on && coordOfProv(i);
+        const chip=el('<span class="pill" style="cursor:pointer;'+(on?'background:#BFE8D4;border-color:#8FCFB0;':'')+(other?'opacity:.4;':'')+'">'+(on?'✓ ':'')+pname(i)+'</span>');
+        chip.onclick=()=>{ c.provs=c.provs||[]; if(on) c.provs=c.provs.filter(x=>x!==i); else { S.coords.forEach(o=>{ o.provs=(o.provs||[]).filter(x=>x!==i); }); c.provs.push(i); } S.coU=Date.now(); save(); render(); };
+        pw.appendChild(chip);
+      });
+      box.appendChild(pw); cc.appendChild(box);
+    });
+    const add=el('<button class="b">＋ '+T('coordAdd')+'</button>');
+    add.onclick=()=>{ const n=prompt(T('guildName')); if(n&&n.trim()){ addGuild(n.trim()); S.coords=S.coords||[]; S.coords.push({g:n.trim(),provs:[]}); S.coU=Date.now(); save(); render(); } };
+    cc.appendChild(add);
+    P.appendChild(cc);
+  }
 
   // ギルド顔ぶれプリセット（「この日に入るはずのギルド」を毎回選び直さなくていいように名前を付けて保存したもの）
   const prc=el('<div class="card"><h2>'+T('presetManage')+'（'+(S.expectPresets||[]).length+'）</h2></div>');
@@ -1519,7 +1589,7 @@ function renderData(){
   h+='</table></div>';
   const tb=el(h); rc.appendChild(tb);
   tb.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{
-    S.rewards[+inp.dataset.lv][+inp.dataset.i][+inp.dataset.k]=+inp.value||0;save();});
+    S.rewards[+inp.dataset.lv][+inp.dataset.i][+inp.dataset.k]=+inp.value||0;S.rwU=Date.now();save();});
   P.appendChild(rc);
 
   // 全消去
@@ -1598,101 +1668,205 @@ function autofill(){ // 3体わかっていれば4体目を推定。位置未記
 
 /* ---------- 同期（Functions経由） ---------- */
 function st(m){const e=document.getElementById('syncst');if(e)e.textContent=m;}
+// ===== 同期のしくみ =====
+// ・受信（20秒ごと）：サーバーの内容を土台にして、この端末でまだ「これでOK」を押していない城（未送信）と、
+//   まだ送っていない新しい城戦は、この端末の内容のまま残す（以前は丸ごと置き換えていたので、入力途中の城が消えていた）。
+// ・送信（これでOK）：送る直前にサーバーを取り直し、その城だけ差し替える。開いた後に他の人がその城を更新していたら
+//   上書きしてよいか確認する（何も入れていない古い画面で、入力済みの城を消さないため）。
+// ・削除は「削除した印（S.del）」として共有する。印のない城・城戦はサーバー側でも消せない（sync.jsが拒否する）。
+function cloneJ(o){return JSON.parse(JSON.stringify(o));}
+function validRemote(o){ return o && typeof o==='object' && (Array.isArray(o.battles) || !Object.keys(o).length); }
+function rowBody(r){ if(!r) return ''; const o=cloneJ(r); ['synced','v','bv','shot'].forEach(k=>delete o[k]); return JSON.stringify(o); }
+// サーバーの内容(o)と、この端末の状態(S)を合わせた新しい状態を返す
+function mergeRemote(o){
+  const L=S, N=cloneJ(o||{});
+  N.lang=L.lang; N.cur=L.cur; N.authorFilter=L.authorFilter; N.sumHiddenGuilds=L.sumHiddenGuilds||N.sumHiddenGuilds||[];
+  const del=Object.assign({},N.del||{},L.del||{}); N.del=del;
+  N.battles=(Array.isArray(N.battles)?N.battles:[]).filter(b=>!del[b.id]);
+  N.battles.forEach(b=>{ b.synced=true; b.rows=(b.rows||[]).filter(r=>!del[r.id]); b.rows.forEach(r=>{ r.synced=true; r.bv=r.v||0; }); });
+  (L.battles||[]).forEach(LB=>{
+    if(del[LB.id]) return;
+    const RB=N.battles.find(b=>b.id===LB.id);
+    const dirty=(LB.rows||[]).filter(r=>r.synced===false && !del[r.id]);
+    if(!RB){
+      if(LB.synced===false || dirty.length){ const nb=cloneJ(LB); nb.rows=(nb.rows||[]).filter(r=>!del[r.id]); N.battles.push(nb); }
+      return;
+    }
+    if(LB.synced===false){ RB.date=LB.date; RB.author=LB.author; RB.chk=LB.chk; RB.expect=cloneJ(LB.expect||[]); RB.synced=false; }
+    dirty.forEach(lr=>{
+      const i=RB.rows.findIndex(x=>x.id===lr.id);
+      if(i>=0){ RB.rows[i]=cloneJ(lr); return; }
+      const li=LB.rows.indexOf(lr); let pos=-1;
+      for(let k=li-1;k>=0;k--){ const j=RB.rows.findIndex(x=>x.id===LB.rows[k].id); if(j>=0){pos=j+1;break;} }
+      if(pos<0) pos=(li===0)?0:RB.rows.length;
+      RB.rows.splice(pos,0,cloneJ(lr));
+    });
+  });
+  N.battles.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  N.guilds=Array.isArray(N.guilds)?N.guilds:[];
+  (L.guilds||[]).forEach(g=>{ const rg=N.guilds.find(x=>x.n===g.n);
+    if(!rg) N.guilds.push(cloneJ(g)); else if((g.pu||0)>(rg.pu||0)){ rg.prov=g.prov; rg.pu=g.pu; rg.pauto=g.pauto; } });
+  N.myCoord=L.myCoord;
+  if((L.coU||0)>(N.coU||0) || !N.coords){ N.coords=cloneJ(L.coords||[]); N.coU=L.coU; }
+  (L.guilds||[]).forEach(g=>{ const rg=N.guilds.find(x=>x.n===g.n); if(rg && (g.cu||0)>(rg.cu||0)){ rg.coord=g.coord; rg.cu=g.cu; rg.cauto=g.cauto; } });
+  if((L.cpU||0)>(N.cpU||0)){ N.seasonStart=L.seasonStart; N.cpU=L.cpU; if(L.cpAssign) N.cpAssign=cloneJ(L.cpAssign); }
+  if((L.rwU||0)>(N.rwU||0) || !N.rewards){ N.rewards=cloneJ(L.rewards); N.rwU=L.rwU; }
+  fixRewards(N.rewards);
+  if(L.boss && Object.keys(L.boss).length) N.boss=L.boss;
+  N.expectPresets=Array.isArray(N.expectPresets)?N.expectPresets:[];
+  (L.expectPresets||[]).forEach(p=>{ if(!N.expectPresets.some(x=>x.name===p.name)) N.expectPresets.push(cloneJ(p)); });
+  N.ru=(o&&o.u)||L.ru||0; N.u=L.u;
+  return N;
+}
+function adopt(N){ Object.keys(S).forEach(k=>delete S[k]); Object.assign(S,N); saveLocal(); }
+async function fetchRemote(){
+  const r=await fetch('/api/sync',{cache:'no-store'}); if(!r.ok) throw new Error(r.status);
+  const o=await r.json();
+  if(!validRemote(o)) throw new Error('bad data');
+  // 一度でも受信できた端末で、サーバーが空に見える時は通信の異常とみなして何もしない
+  if(!Array.isArray(o.battles) && (S.ru||0)>0) throw new Error('empty');
+  return o;
+}
+async function postRemote(obj){
+  const pr=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+  if(pr.status===409) { const e=new Error('conflict'); e.conflict=true; throw e; }
+  if(!pr.ok) throw new Error(pr.status);
+  let j=null; try{ j=await pr.json(); }catch(err){}
+  if(j && j.ok===false) throw new Error(j.reason||'rejected');
+}
 async function doPull(loud){
   try{
-    const r=await fetch('/api/sync',{cache:'no-store'});
-    if(!r.ok)throw new Error(r.status);
-    const o=await r.json();
-    if(o&&o.u&&o.u>(S.u||0)){Object.assign(S,o);fixRewards(S.rewards);try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
-      if(loud)toast('⬇ OK');render();}
-    else if(loud)toast('⬇ —');
+    const o=await fetchRemote();
+    if((o.u||0)>(S.ru||0)){ adopt(mergeRemote(o)); if(loud)toast('⬇ OK'); render(); }
+    else if(loud) toast('⬇ —');
     st('⬇ '+new Date().toLocaleTimeString());
   }catch(e){st('⬇ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
 }
-async function doPush(loud){
-  try{
-    const r=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
-    if(!r.ok)throw new Error(r.status);
-    st('⬆ '+new Date().toLocaleTimeString()); if(loud)toast('⬆ OK');
-  }catch(e){st('⬆ ✕ '+e.message); if(loud)alert('sync error: '+e.message);}
-}
-// 「これでOK」ボタン専用：この1城（1行）の内容だけを、送信する直前に取得し直した最新のサーバー内容に
-// 差し込んでから送信する。doPush()と違って今の画面のS全体をそのまま送るわけではないので、
-// 自分の画面がたまたま他の城・他の日について古くても、そこを巻き込んで上書きしてしまうことがない。
+// サーバーの内容(remote)に、城戦Bのこの城(r)を差し込んだ送信用データを作る
 function mergeRowIntoRemote(remote,B,r){
-  const base=(remote&&typeof remote==='object')?JSON.parse(JSON.stringify(remote)):{};
-  base.lang=S.lang; base.cur=S.cur;
+  const base=(remote&&typeof remote==='object')?cloneJ(remote):{};
   base.battles=Array.isArray(base.battles)?base.battles:[];
   base.guilds=Array.isArray(base.guilds)?base.guilds:[];
-  base.rewards=base.rewards||S.rewards;
+  if(!base.rewards || (S.rwU||0)>(base.rwU||0)){ base.rewards=cloneJ(S.rewards); base.rwU=S.rwU; }
   fixRewards(base.rewards);
-  base.boss=base.boss||S.boss;
-  base.expectPresets=Array.isArray(base.expectPresets)?base.expectPresets:(S.expectPresets||[]);
-  base.sumHiddenGuilds=Array.isArray(base.sumHiddenGuilds)?base.sumHiddenGuilds:(S.sumHiddenGuilds||[]);
-  // 城取り計画から取り込んだシーズン開始日・城主割当は、新しく取り込んだ方を優先する
+  if(!base.boss) base.boss=S.boss;
+  base.expectPresets=Array.isArray(base.expectPresets)?base.expectPresets:[];
+  (S.expectPresets||[]).forEach(p=>{ if(!base.expectPresets.some(x=>x.name===p.name)) base.expectPresets.push(cloneJ(p)); });
   if((S.cpU||0)>(base.cpU||0)){
     base.seasonStart=S.seasonStart; base.cpU=S.cpU;
-    if(S.cpAssign) base.cpAssign=S.cpAssign; // 日付だけ手入力した端末が、他の端末で取り込んだ城主割当を消さないように
+    if(S.cpAssign) base.cpAssign=S.cpAssign;
   }
-  // ギルド一覧：自分の画面にしかない新しいギルドだけ追加する（既存分の並び・色はサーバー側を尊重）
-  (S.guilds||[]).forEach(g=>{ if(!base.guilds.some(x=>x.n===g.n)) base.guilds.push(g); });
-  // 拠点州（prov）は、この端末で後から設定・変更した方が新しければそれを反映する
+  (S.guilds||[]).forEach(g=>{ if(!base.guilds.some(x=>x.n===g.n)) base.guilds.push(cloneJ(g)); });
   (S.guilds||[]).forEach(g=>{
     const rg=base.guilds.find(x=>x.n===g.n);
-    if(rg && rg!==g && (g.pu||0)>(rg.pu||0)){ rg.prov=g.prov; rg.pu=g.pu; rg.pauto=g.pauto; }
+    if(rg && (g.pu||0)>(rg.pu||0)){ rg.prov=g.prov; rg.pu=g.pu; rg.pauto=g.pauto; }
+    if(rg && (g.cu||0)>(rg.cu||0)){ rg.coord=g.coord; rg.cu=g.cu; rg.cauto=g.cauto; }
   });
-  // この城戦日（battle）がサーバーにまだ無ければ丸ごと追加。あれば「このOKを押した城（行）」だけ差し替える
+  if(S.coords && ((S.coU||0)>(base.coU||0) || !base.coords)){ base.coords=cloneJ(S.coords); base.coU=S.coU; }
+  base.del=Object.assign({},base.del||{},S.del||{});
   const bi=base.battles.findIndex(x=>x.id===B.id);
+  const rc=r?cloneJ(r):null; if(rc){ rc.synced=true; }
   if(bi<0){
-    base.battles.push(JSON.parse(JSON.stringify(B)));
+    const nb=cloneJ(B); nb.synced=true;
+    // まだ送っていない兄弟の城は、内容は送るが「未送信」の印は外さない（その端末では引き続き未送信として扱う）
+    nb.rows=(nb.rows||[]).map(x=>(rc&&x.id===rc.id)?rc:x).filter(x=>!base.del[x.id]);
+    base.battles.push(nb);
   } else {
     const rb=base.battles[bi];
-    rb.date=B.date; rb.author=B.author; rb.chk=B.chk; rb.expect=B.expect;
+    if(B.synced===false || !rb.date){ rb.date=B.date; rb.author=B.author; rb.chk=B.chk; rb.expect=cloneJ(B.expect||[]); }
     const oldRows=Array.isArray(rb.rows)?rb.rows:[];
-    // 行の並び順は「今回OKを押した自分の画面」の並び（B.rows）を基準にする。
-    // サーバー側の古い並びを基準にすると、▲▼で並び替えた後にOKを押した時に
-    // 並び順がサーバーの古い順序に戻って崩れてしまうバグになる。
+    // 行の並び順は「今回OKを押した自分の画面」の並び（B.rows）を基準にする
     const newRows=[];
     (B.rows||[]).forEach(localRow=>{
-      if(localRow.id===r.id){
-        // 今回確定した行は、自分が今送る内容で確定
-        newRows.push(JSON.parse(JSON.stringify(r)));
-      } else {
-        // まだ「これでOK」を押していない他の城は、サーバー側に既にあればそちらの内容を優先
-        // （他デバイスの新しい編集を自分の古いローカルコピーで上書きしないため）。
-        // サーバーに無ければ自分の画面にしかない新しい行なのでそのまま追加する。
-        const serverRow=oldRows.find(x=>x.id===localRow.id);
-        newRows.push(JSON.parse(JSON.stringify(serverRow||localRow)));
-      }
+      if(rc && localRow.id===rc.id){ newRows.push(rc); }
+      else { const serverRow=oldRows.find(x=>x.id===localRow.id); newRows.push(cloneJ(serverRow||localRow)); }
     });
-    // 自分の画面には無いがサーバー側にだけある行（他デバイスが追加した行）は、末尾に残す
-    oldRows.forEach(serverRow=>{
-      if(!newRows.some(x=>x.id===serverRow.id)){
-        newRows.push(JSON.parse(JSON.stringify(serverRow)));
-      }
-    });
-    rb.rows=newRows;
+    oldRows.forEach(serverRow=>{ if(!newRows.some(x=>x.id===serverRow.id)) newRows.push(cloneJ(serverRow)); });
+    rb.rows=newRows.filter(x=>!base.del[x.id]);
   }
+  base.battles=base.battles.filter(b=>!base.del[b.id]);
+  delete base.lang; delete base.cur; delete base.authorFilter; delete base.myCoord; delete base.ru; delete base.sumHiddenGuilds;
   base.u=Date.now();
   return base;
 }
+// 送る前のチェック：この城を、自分が開いた後に他の人が更新していないか
+function rowConflict(remote,B,r){
+  const rb=(remote.battles||[]).find(x=>x.id===B.id); if(!rb) return null;
+  const sr=(rb.rows||[]).find(x=>x.id===r.id); if(!sr) return null;
+  if((sr.v||0)===(r.bv||0)) return null;
+  if(rowBody(sr)===rowBody(r)) return null;
+  return sr;
+}
+function syncFailMsg(e){
+  return (S.lang==='zh'?'送出失敗（資料還在您的畫面裡，請再按一次）：':S.lang==='ko'?'전송 실패（데이터는 화면에 남아 있습니다. 다시 눌러 주세요）：':'送信できませんでした（入力した内容は画面に残っているので、もう一度押してください）：')+e.message;
+}
 async function pushRow(B,r){
-  try{
-    const resp=await fetch('/api/sync',{cache:'no-store'});
-    if(!resp.ok)throw new Error(resp.status);
-    const remote=await resp.json();
-    const merged=mergeRowIntoRemote(remote,B,r);
-    const pr=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(merged)});
-    if(!pr.ok)throw new Error(pr.status);
-    Object.assign(S,merged);
-    try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
-    st('⬆ '+new Date().toLocaleTimeString()); toast('⬆ OK');
-    render();
-  }catch(e){
-    st('⬆ ✕ '+e.message);
-    alert((S.lang==='zh'?'無法取得最新伺服器內容，已取消送出（這個城的資料還在您的畫面裡，請再按一次）：':
-           S.lang==='ko'?'최신 서버 내용을 가져오지 못해 전송을 취소했습니다（이 성의 데이터는 화면에 남아있습니다, 다시 눌러주세요）：':
-           '最新のサーバー内容が取得できなかったので送信を中止しました（この城のデータは画面に残っているので、もう一度押してください）：')+e.message);
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const remote=await fetchRemote();
+      const sr=rowConflict(remote,B,r);
+      if(sr){
+        const who=(remote.battles.find(x=>x.id===B.id)||{}).author;
+        if(!confirm(cname(r.c)+T('conflict1')+(sr.occ?('（'+T('occupier')+'：'+sr.occ+'）'):'')+T('conflict2'))){
+          // 相手の内容を採用して画面に表示する
+          const i=B.rows.findIndex(x=>x.id===r.id); const nr=cloneJ(sr); nr.synced=true; nr.bv=sr.v||0;
+          if(i>=0) B.rows[i]=nr; adopt(mergeRemote(remote)); render(); return;
+        }
+      }
+      const now=Date.now();
+      const rr=cloneJ(r); rr.v=now; rr.bv=now;
+      const merged=mergeRowIntoRemote(remote,B,rr);
+      await postRemote(merged);
+      r.v=now; r.bv=now; r.synced=true; B.synced=true;
+      adopt(mergeRemote(merged));
+      st('⬆ '+new Date().toLocaleTimeString()); toast('⬆ OK');
+      render(); return;
+    }catch(e){
+      if(e.conflict && attempt<2) continue; // 同時に誰かが送った時は、取り直してもう一度
+      st('⬆ ✕ '+e.message); render(); alert(syncFailMsg(e)); return;
+    }
+  }
+}
+// 削除の印をサーバーに送る
+async function pushDeletes(){
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const remote=await fetchRemote();
+      const base=cloneJ(remote); base.battles=Array.isArray(base.battles)?base.battles:[];
+      base.del=Object.assign({},base.del||{},S.del||{});
+      base.battles=base.battles.filter(b=>!base.del[b.id]);
+      base.battles.forEach(b=>{ b.rows=(b.rows||[]).filter(r=>!base.del[r.id]); });
+      base.u=Date.now();
+      await postRemote(base);
+      adopt(mergeRemote(base)); st('⬆ '+new Date().toLocaleTimeString()); render(); return;
+    }catch(e){ if(e.conflict && attempt<2) continue; st('⬆ ✕ '+e.message); return; }
+  }
+}
+// データタブの「送信」：この端末の未送信の城をまとめて送る（サーバーの他の内容は消さない）
+async function doPush(loud){
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const remote=await fetchRemote();
+      let base=cloneJ(remote);
+      const todo=[];
+      S.battles.forEach(B=>{ (B.rows||[]).forEach(r=>{ if(r.synced===false) todo.push([B,r]); }); if(B.synced===false && !(B.rows||[]).length) todo.push([B,null]); });
+      const conf=todo.filter(([B,r])=>r && rowConflict(remote,B,r));
+      let skip=new Set();
+      if(conf.length && !confirm(conf.map(([B,r])=>B.date+' '+cname(r.c)).join('、')+'\n'+T('conflictMany'))) skip=new Set(conf.map(([B,r])=>r.id));
+      const now=Date.now(), sent=[];
+      todo.forEach(([B,r])=>{
+        if(r && skip.has(r.id)) return;
+        const rr=r?Object.assign(cloneJ(r),{v:now,bv:now}):null;
+        base=mergeRowIntoRemote(base,B,rr); sent.push([B,r]);
+      });
+      if(!sent.length){ base=mergeRowIntoRemote(base,{id:'__none__',rows:[]},null); base.battles=base.battles.filter(b=>b.id!=='__none__'); }
+      await postRemote(base);
+      sent.forEach(([B,r])=>{ B.synced=true; if(r){ r.synced=true; r.v=now; r.bv=now; } });
+      // 確認で「相手の内容を使う」を選んだ城は、未送信の印を外してサーバーの内容に合わせる
+      skip.forEach(id=>S.battles.forEach(B=>(B.rows||[]).forEach(r=>{ if(r.id===id) r.synced=true; })));
+      adopt(mergeRemote(base));
+      st('⬆ '+new Date().toLocaleTimeString()); if(loud) toast('⬆ OK ('+sent.length+')'); render(); return;
+    }catch(e){ if(e.conflict && attempt<2) continue; st('⬆ ✕ '+e.message); if(loud) alert(syncFailMsg(e)); return; }
   }
 }
 function gmst(m){const e=document.getElementById('gmst');if(e)e.textContent=m;}
@@ -1774,6 +1948,221 @@ function exportSumPNG(tv){
     a.download='summary-'+ymdLocal()+'-'+hhmm()+'.png';a.click();});
 }
 
+/* ---------- 画像からの復旧 ---------- */
+// ① これから書き出す入場表・門配置図のPNGには、中身のデータ（城・城主・門の担当）を見えない形で埋め込む（tEXtチャンク）。
+//    その画像を読み込めば、そのまま正確に復旧できる。
+// ② データが埋め込まれていない古い入場表の画像は、表のマス目の位置が決まっているので、各マスの文字を
+//    「候補（城名・ギルド名）を同じ書式で描いた絵」と見比べて、一番似ているものを選んで読み取る。
+const PNG_KEY='arl-entry';
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_T[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function b64u(str){return btoa(unescape(encodeURIComponent(str)));}
+function unb64u(b){return decodeURIComponent(escape(atob(b)));}
+function entryPayload(battles){
+  return {fmt:1,battles:battles.map(B=>({date:B.date,author:B.author||'',rows:(B.rows||[]).map(r=>{
+    const o={c:r.c,occ:r.occ||'',a:r.a||{},ex:r.ex||[]};
+    ['noCalc','cap5','chg','rewardOverride','extra'].forEach(k=>{ if(r[k]!==undefined) o[k]=r[k]; });
+    return o;})}))};
+}
+async function pngWithData(blob,battles){
+  try{
+    const buf=new Uint8Array(await blob.arrayBuffer());
+    const txt=PNG_KEY+'\0'+b64u(JSON.stringify(entryPayload(battles)));
+    const data=new Uint8Array(txt.length); for(let i=0;i<txt.length;i++) data[i]=txt.charCodeAt(i)&255;
+    const type=new Uint8Array([116,69,88,116]); // tEXt
+    const chunk=new Uint8Array(12+data.length), dv=new DataView(chunk.buffer);
+    dv.setUint32(0,data.length); chunk.set(type,4); chunk.set(data,8);
+    const td=new Uint8Array(4+data.length); td.set(type,0); td.set(data,4); dv.setUint32(8+data.length,crc32(td));
+    const iend=buf.length-12; // IENDの直前に入れる
+    const out=new Uint8Array(buf.length+chunk.length); out.set(buf.subarray(0,iend),0); out.set(chunk,iend); out.set(buf.subarray(iend),iend+chunk.length);
+    return new Blob([out],{type:'image/png'});
+  }catch(e){ return blob; }
+}
+function readPngData(u8){
+  if(u8.length<8||u8[0]!==137||u8[1]!==80) return null;
+  let p=8; const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  while(p+12<=u8.length){
+    const len=dv.getUint32(p), type=String.fromCharCode(u8[p+4],u8[p+5],u8[p+6],u8[p+7]);
+    if(type==='tEXt'){
+      let t=''; for(let i=0;i<len;i++) t+=String.fromCharCode(u8[p+8+i]);
+      const z=t.indexOf('\0');
+      if(t.slice(0,z)===PNG_KEY){ try{ return JSON.parse(unb64u(t.slice(z+1))); }catch(e){ return null; } }
+    }
+    if(type==='IEND') break;
+    p+=12+len;
+  }
+  return null;
+}
+// --- 絵合わせで読み取る（drawEntryCanvasと同じ寸法） ---
+let NUMW=0.005, LVW=0.03;
+const ENT={W:1620,PAD:12,TT:44,HH:150,RH:124,GH:52,C:[12,96,496,806],CW:[84,400,310,802]};
+const sigCache=new Map();
+function entFont(sz,w){return (w||'')+' '+sz+'px system-ui,"Hiragino Sans","Noto Sans JP","Noto Sans TC","Noto Sans KR",sans-serif';}
+// 画素の並びから「文字の形」を取り出す：背景色と違う画素の範囲を切り出し、24×96のマスに縮めた濃さの表にする
+function inkSig(get,w,h,bg,abs,gw){
+  let x0=w,y0=h,x1=-1,y1=-1,n=0;
+  const ink=(x,y)=>{const c=get(x,y);return Math.abs(c[0]-bg[0])+Math.abs(c[1]-bg[1])+Math.abs(c[2]-bg[2])>90;};
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++) if(ink(x,y)){n++; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;}
+  if(n<Math.max(6,w*h*0.0008)) return null;
+  if(abs){ // 数字のように短い文字は、引き伸ばさずに高さだけ揃えて中央に置いて比べる
+    const bh0=y1-y0+1, sc=24/bh0, cxm=(x0+x1)/2, GW0=48, g0=new Float32Array(GW0*24);
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) if(ink(x,y)){ const gx=Math.floor((x-cxm)*sc+GW0/2), gy=Math.min(23,Math.floor((y-y0)*sc)); if(gx>=0&&gx<GW0) g0[gy*GW0+gx]=1; }
+    return {g:g0,ar:1,wr:0};
+  }
+  const GW=gw||96,GHh=24, g=new Float32Array(GW*GHh), bw=x1-x0+1, bh=y1-y0+1;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) if(ink(x,y)){ const gx=Math.min(GW-1,Math.floor((x-x0)/bw*GW)), gy=Math.min(GHh-1,Math.floor((y-y0)/bh*GHh)); g[gy*GW+gx]++; }
+  const cell=(bw/GW)*(bh/GHh); for(let i=0;i<g.length;i++) g[i]=Math.min(1,g[i]/Math.max(1,cell));
+  return {g,ar:bw/bh,wr:bw/w};
+}
+function sigDist(a,b){ let d=0; for(let i=0;i<a.g.length;i++) d+=Math.abs(a.g[i]-b.g[i]); d/=a.g.length; return d+0.25*Math.abs(Math.log(a.ar/b.ar))+0.5*Math.abs(a.wr-b.wr); }
+// 候補の文字を、マスと同じ大きさ・書式で描いて形を取る
+function candSig(text,w,h,sz,weight,maxW,align,abs,gw){
+  const key=[text,w,h,sz,weight,maxW,align,abs,gw].join('|'); if(sigCache.has(key)) return sigCache.get(key);
+  const c=document.createElement('canvas'); c.width=Math.max(1,Math.round(w)); c.height=Math.max(1,Math.round(h));
+  const x=c.getContext('2d',{willReadFrequently:true}); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  x.font=entFont(sz,weight); x.fillStyle='#222'; x.textBaseline='middle';
+  if(align==='left'){ x.textAlign='left'; x.fillText(text,0,c.height/2,maxW); } else { x.textAlign='center'; x.fillText(text,c.width/2,c.height/2,maxW); }
+  const d=x.getImageData(0,0,c.width,c.height).data;
+  const sig=inkSig((px,py)=>{const i=(py*c.width+px)*4;return [d[i],d[i+1],d[i+2]];},c.width,c.height,[255,255,255],abs,gw);
+  sigCache.set(key,sig); return sig;
+}
+function bestMatch(sig,cands,mk){
+  let best=null,bd=1e9;
+  cands.forEach(t=>{ const cs=mk(t); if(!cs) return; const d=sigDist(sig,cs); if(d<bd){bd=d;best=t;} });
+  return {t:best,d:bd};
+}
+function recognizeEntry(img,fileName){
+  const s=img.naturalWidth/ENT.W, H=img.naturalHeight;
+  const cv=document.createElement('canvas'); cv.width=img.naturalWidth; cv.height=H;
+  const cx=cv.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0);
+  const D=cx.getImageData(0,0,cv.width,H).data, CWd=cv.width;
+  const px=(x,y)=>{x=Math.max(0,Math.min(CWd-1,Math.round(x)));y=Math.max(0,Math.min(H-1,Math.round(y)));const i=(y*CWd+x)*4;return [D[i],D[i+1],D[i+2]];};
+  const near=(c,t,tol)=>Math.abs(c[0]-t[0])+Math.abs(c[1]-t[1])+Math.abs(c[2]-t[2])<(tol||40);
+  const top=(ENT.PAD+ENT.TT)*s;
+  if(!near(px((ENT.PAD+40)*s,top+20*s),[255,255,102],60)) return null; // 入場表の黄色い見出しがない
+  // 1マス分の画素を切り出して形を取る
+  const cellSig=(X,Y,Wd,Hd,abs,gw)=>{
+    const ins=Math.max(3,Math.round(3*s)); const x0=Math.round(X*s)+ins, y0=Math.round(Y*s)+ins, w=Math.round(Wd*s)-ins*2, h=Math.round(Hd*s)-ins*2;
+    const bg=px(x0+1,y0+1);
+    return {sig:inkSig((a,b)=>px(x0+a,y0+b),w,h,bg,abs,gw),bg,w,h};
+  };
+  const guildNames=[...new Set(S.guilds.map(g=>g.n).concat(ALLY?[...ALLY]:[]))];
+  const castles=SEED.cities.map(c=>c.j);
+  // 日付の候補：ファイル名の日付、台帳にある日付、解放日、今日の前後の月曜・金曜
+  const dset=new Set(); (S.battles||[]).forEach(b=>b.date&&dset.add(b.date)); (waveDates()||[]).forEach(d=>dset.add(d));
+  const t0=new Date(); for(let k=-150;k<=21;k++){const d=new Date(t0);d.setDate(d.getDate()+k);dset.add(isoOf(d));}
+  const fm=(fileName||'').match(/(\d{4})-?(\d{2})-?(\d{2})/); const fileDate=fm?fm[1]+'-'+fm[2]+'-'+fm[3]:'';
+  const dates=[...dset];
+  const groups=[]; let cur=null;
+  // タイトル（左上の日付）
+  {
+    const t=cellSig(ENT.PAD,ENT.PAD-4,ENT.W-ENT.PAD*2,ENT.TT);
+    let title='';
+    if(t.sig){ const m=bestMatch(t.sig,dates,d=>candSig(d,t.w,t.h,32*s,'bold',undefined,'left')); title=m.t||''; }
+    cur={date:title,rows:[]};
+  }
+  let y=(ENT.PAD+ENT.TT+ENT.HH)*s;
+  while(y+ENT.GH*s<=H+1){
+    const mid=px((ENT.PAD+3)*s,y+ENT.GH*s/2);
+    if(near(mid,[232,160,180],50)){ // 日付ごとの区切り帯
+      const c=cellSig(ENT.PAD,y/s,ENT.W-ENT.PAD*2,ENT.GH);
+      let d='';
+      if(c.sig){ d=bestMatch(c.sig,dates,t=>candSig(t,c.w,c.h,22*s,'bold',(ENT.W-ENT.PAD*2-8)*s)).t||''; }
+      if(cur && cur.rows.length) groups.push(cur);
+      cur={date:d,rows:[]}; y+=ENT.GH*s; continue;
+    }
+    if(y+ENT.RH*s>H+1) break;
+    // 本当に表の行か（城名の列の左に縦の罫線がある）
+    const line=px(ENT.C[1]*s,y+ENT.RH*s/2); if(near(line,[255,255,255],30)) break;
+    const Y=y/s;
+    // 門番号（各列の左の数字）を読む。城ごとに門番号の並びが決まっているので、城名の読み取りの確認に使う
+    const cw0=ENT.CW[3]/4, nums=[];
+    for(let k=0;k<4;k++){
+      const ns=cellSig(ENT.C[3]+cw0*k,Y,cw0*0.3,ENT.RH,true);
+      nums.push(ns.sig?bestMatch(ns.sig,['1','2','3','4','5','6','7','8','9','—'],t=>candSig(t,ns.w,ns.h,22*s,'bold',(cw0*0.3-8)*s,undefined,true)).t:'未登録');
+    }
+    const pat=j=>slots4(j).map(sl=>sl?(sl.g?String(sl.g):'—'):'未登録');
+    const hits=j=>{const q=pat(j);let n=0;for(let k=0;k<4;k++) if(q[k]===nums[k]) n++;return n;};
+    // 城名は文字の形で比べ、門番号の並びが合わない城には少しだけ減点する（数字はフォントの違いで読み違えやすいので、決め手にはしない）
+    const ls=cellSig(ENT.C[0],Y,ENT.CW[0],ENT.RH,true);
+    const lvRead=ls.sig?bestMatch(ls.sig,['1','2','3','4','5','6','7','8','9','10'],t=>candSig(t,ls.w,ls.h,27*s,'bold',(ENT.CW[0]-8)*s,undefined,true)).t:'';
+    const cs=cellSig(ENT.C[1],Y,ENT.CW[1],ENT.RH,false,240);
+    let castle='', bd=1e9;
+    if(cs.sig) castles.forEach(j=>{ const ci=CITY[j]; const cg=candSig('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',cs.w,cs.h,24*s,'bold',(ENT.CW[1]-10)*s,undefined,false,240); if(!cg) return;
+      const d=sigDist(cs.sig,cg)+NUMW*(4-hits(j))+(String(ci.lv)===lvRead?0:LVW); if(d<bd){bd=d;castle=j;} });
+    const row={c:castle,occ:'',a:{},noCalc:{}};
+    const os=cellSig(ENT.C[2],Y,ENT.CW[2],ENT.RH);
+    if(os.sig) row.occ=bestMatch(os.sig,guildNames,g=>candSig(g,os.w,os.h,23*s,'bold',(ENT.CW[2]-8)*s)).t||'';
+    const cw=ENT.CW[3]/4;
+    for(let k=0;k<4;k++){
+      const a=ENT.C[3]+cw*k+cw*0.3, gs=cellSig(a,Y,cw*0.7,ENT.RH);
+      if(!gs.sig) continue;
+      const decoy=!near(gs.bg,[255,255,255],12) && near(gs.bg,[245,241,234],24);
+      const cands=decoy?guildNames.map(g=>'※'+g):guildNames.concat(['未登録']);
+      const m=bestMatch(gs.sig,cands,g=>candSig(g,gs.w,gs.h,23*s,'bold',(cw*0.7-8)*s));
+      if(!m.t||m.t==='未登録') continue;
+      const lv=4-k; const g=decoy?m.t.slice(1):m.t;
+      row.a[lv]=g; if(decoy) row.noCalc[lv]=true;
+    }
+    if(castle) cur.rows.push(row);
+    y+=ENT.RH*s;
+  }
+  if(cur && cur.rows.length) groups.push(cur);
+  if(groups.length===1 && fileDate && !groups[0].date) groups[0].date=fileDate;
+  return {battles:groups,visual:true};
+}
+function loadImg(blob){ return new Promise((res,rej)=>{ const u=URL.createObjectURL(blob); const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('image')); im.src=u; }); }
+async function readEntryImage(file){
+  const u8=new Uint8Array(await file.arrayBuffer());
+  const emb=readPngData(u8);
+  if(emb && Array.isArray(emb.battles)) return {battles:emb.battles,visual:false};
+  const im=await loadImg(file);
+  return recognizeEntry(im,file.name||'');
+}
+// 読み取った内容を台帳に戻す。同じ日付の城戦があればそこへ、なければ新しく作る。
+// 同じ城がすでにあれば画像の内容で上書き、なければ追加。どれも「未送信」にしておき、最後にまとめて送信する
+function applyRestore(res){
+  const lines=[]; let total=0;
+  res.battles.forEach(g=>{
+    let d=g.date;
+    if(!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)){ d=prompt(T('restoreAskDate'),isoOf(new Date())); if(!d) return; g.date=d; }
+    lines.push(d+'：'+g.rows.map(r=>cname(r.c)+(r.occ?('（'+r.occ+'）'):'')).join('、')); total+=g.rows.length;
+  });
+  if(!total){ alert(T('restoreNone')); return; }
+  if(!confirm(T('restoreConfirm')+'\n\n'+lines.join('\n')+(res.visual?('\n\n'+T('restoreVisualNote')):''))) return;
+  res.battles.forEach(g=>{
+    if(!g.date) return;
+    let B=S.battles.find(b=>b.date===g.date && b.id===S.cur) || S.battles.find(b=>b.date===g.date);
+    if(!B){ B={id:uid(),date:g.date,rows:[],author:g.author||S.authorFilter||'',chk:false,expect:[],synced:false}; S.battles.unshift(B); }
+    g.rows.forEach(gr=>{
+      if(!CITY[gr.c]) return;
+      let r=B.rows.find(x=>x.c===gr.c);
+      if(!r){ r={id:uid(),c:gr.c,occ:'',a:{},ex:[],shot:''}; B.rows.push(r); }
+      r.occ=gr.occ||''; r.a=Object.assign({},gr.a||{}); r.ex=(gr.ex||[]).slice();
+      r.noCalc=Object.assign({},gr.noCalc||{});
+      ['cap5','chg','rewardOverride','extra'].forEach(k=>{ if(gr[k]!==undefined) r[k]=cloneJ(gr[k]); });
+      if(gr.cap5===undefined && castleStatus(gr.c,B.date)==='reopen') r.cap5=true;
+      [r.occ,...Object.values(r.a),...r.ex].forEach(n=>n&&addGuild(n));
+      r.synced=false; rowOpen.add(r.id);
+    });
+    S.cur=B.id; expanded.add(B.id);
+  });
+  save(); render();
+  if(confirm(T('restoreSend'))) doPush(true);
+}
+function restoreButton(){
+  const lab=el('<label class="b w" style="cursor:pointer">🖼 '+T('restoreBtn')+'<input type="file" accept="image/*" multiple style="display:none"></label>');
+  const inp=lab.querySelector('input');
+  inp.onchange=async()=>{
+    const files=[...inp.files]; inp.value='';
+    for(const f of files){
+      try{ const res=await readEntryImage(f); if(!res){ alert(T('restoreNotEntry')+'（'+(f.name||'')+'）'); continue; } applyRestore(res); }
+      catch(e){ alert(T('restoreNotEntry')+'：'+e.message); }
+    }
+  };
+  return lab;
+}
+
 /* ---------- PNG出力（入場予定表） ---------- */
 // battles: 城戦の配列（1件でも複数でもOK）。複数日をまとめる場合は日付ごとに区切り帯を挟む
 // ダウンロード名に付ける出力時刻（HHMM、端末の時刻）。同じ名前で(1)(2)と増えて新旧が分からなくなるのを防ぐ
@@ -1783,7 +2172,7 @@ function exportPNG(battles){
   const cv=document.getElementById('cv');
   const titleTxt=drawEntryCanvas(battles,cv);
   if(titleTxt===null){alert(T('noData'));return;}
-  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  cv.toBlob(async b=>{b=await pngWithData(b,battles);const a=document.createElement('a');a.href=URL.createObjectURL(b);
     a.download='entry-'+(titleTxt||'plan').replace(/[^0-9a-zA-Z\-〜]/g,'')+'-'+hhmm()+'.png';a.click();});
 }
 // battles を指定の canvas 要素に描画する。データが無ければ null を返す（呼び出し側で noData 表示など判断）。
@@ -2004,7 +2393,7 @@ function exportGatePNG(battles){
     x.fillStyle='#3B332C'; x.fillText(legLabels[i], lx+19, ly);
   });
 
-  cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  cv.toBlob(async b=>{b=await pngWithData(b,battles);const a=document.createElement('a');a.href=URL.createObjectURL(b);
     a.download='gate-plan-'+ymdLocal()+'-'+hhmm()+'.png';a.click();});
 }
 
