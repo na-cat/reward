@@ -1,18 +1,37 @@
 // 報酬台帳「専用」の保管場所への中継。
 // LEDGER_SYNC_URL が未設定の間は、誤って共有の保管場所を壊さないよう、
 // 同期はせずローカル保存のみで動く（空を返す／送信は失敗として扱う）。
+//
+// 【データが消えないための見張り】
+// 送られてきた内容で、今サーバーにある城戦・城が「削除の印（del）」なしで消えている場合は、保存を断る（409）。
+// 古い画面や、何も入れていない画面から送られた内容で、入力済みのデータが上書きで消されるのを防ぐため。
 const H = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 
 export async function onRequestGet({ env }) {
   const target = env.LEDGER_SYNC_URL;
   if (!target) return new Response('{}', { status: 200, headers: H });
   try {
-    const r = await fetch(target, { headers: { 'Accept': 'application/json' } });
+    const r = await fetch(target, { headers: { 'Accept': 'application/json' }, cf: { cacheTtl: 0 } });
     const t = await r.text();
+    if (!r.ok) return new Response(JSON.stringify({ error: 'upstream ' + r.status }), { status: 502, headers: H });
     return new Response(t || '{}', { status: 200, headers: H });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 502, headers: H });
   }
+}
+
+function missingItems(cur, next) {
+  const del = (next && next.del) || {};
+  const nb = new Map(((next && next.battles) || []).map(b => [b.id, b]));
+  const miss = [];
+  ((cur && cur.battles) || []).forEach(b => {
+    if (!b || del[b.id]) return;
+    const n = nb.get(b.id);
+    if (!n) { miss.push(b.date || b.id); return; }
+    const ids = new Set((n.rows || []).map(r => r.id));
+    (b.rows || []).forEach(r => { if (r && !del[r.id] && !ids.has(r.id)) miss.push((b.date || '') + ' ' + (r.c || r.id)); });
+  });
+  return miss;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -20,11 +39,17 @@ export async function onRequestPost({ request, env }) {
   if (!target) return new Response(JSON.stringify({ ok: false, reason: 'LEDGER_SYNC_URL未設定' }), { status: 200, headers: H });
   try {
     const body = await request.text();
-    const r = await fetch(target, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body
-    });
+    let next;
+    try { next = JSON.parse(body); } catch (e) { return new Response(JSON.stringify({ ok: false, reason: 'bad json' }), { status: 400, headers: H }); }
+    if (!next || !Array.isArray(next.battles)) return new Response(JSON.stringify({ ok: false, reason: 'no battles' }), { status: 400, headers: H });
+    // 今の中身と見比べる（取れなかった時は、安全のため保存しない）
+    const cr = await fetch(target, { headers: { 'Accept': 'application/json' } });
+    if (!cr.ok) return new Response(JSON.stringify({ ok: false, reason: 'upstream ' + cr.status }), { status: 502, headers: H });
+    let cur = {};
+    try { cur = JSON.parse((await cr.text()) || '{}'); } catch (e) { return new Response(JSON.stringify({ ok: false, reason: 'upstream bad json' }), { status: 502, headers: H }); }
+    const miss = missingItems(cur, next);
+    if (miss.length) return new Response(JSON.stringify({ ok: false, reason: 'missing', missing: miss.slice(0, 20) }), { status: 409, headers: H });
+    const r = await fetch(target, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     const t = await r.text();
     return new Response(t || '{}', { status: r.ok ? 200 : 502, headers: H });
   } catch (e) {
