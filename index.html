@@ -285,6 +285,18 @@ function castlesOn(date){
 // S.myCoord＝この端末の人が属する取りまとめ（端末ごと）。おすすめ・まとめて追加は、この管轄のギルドだけで考える。
 const DEFAULT_COORDS=[{g:'暮色晨光',provs:[0,1,2]},{g:'ラーメン',provs:[9,10,11]},{g:'天涯海閣',provs:[3,4,5]}];
 function coordOfProv(p){ const c=(S.coords||[]).find(c=>(c.provs||[]).includes(+p)); return c?c.g:''; }
+// 名簿のブロックの色：管轄（取りまとめ）ごとに同じ色。ラーメン＝黄、暮色晨光＝青、天涯海閣＝緑。追加した取りまとめは順番に別の色
+const COORD_COLORS={'ラーメン':['#FFF3C2','#E6C245'],'暮色晨光':['#E1EDFB','#8DB3E6'],'天涯海閣':['#E1F2E5','#8CCB9D']};
+const COORD_EXTRA=[['#EFE6F9','#B79BE0'],['#FDE6D3','#EBA977'],['#FBE4EC','#E59BB5'],['#E0F3F3','#86C7C7']];
+const COORD_NONE=['#F3F0EA','#CFC6B8'];
+function coordColor(name){
+  if(!name) return COORD_NONE;
+  if(COORD_COLORS[name]) return COORD_COLORS[name];
+  const i=(S.coords||[]).findIndex(c=>c.g===name); if(i<0) return COORD_NONE;
+  const used=Object.keys(COORD_COLORS); let k=0;
+  for(let j=0;j<i;j++){ if(!used.includes(S.coords[j].g)) k++; }
+  return COORD_EXTRA[k%COORD_EXTRA.length];
+}
 // 拠点州から取りまとめを自動で決める。翼都に引っ越したギルドは、元の方面の取りまとめのまま（手で決めた分は変えない）
 function autoCoord(){
   let ch=false;
@@ -652,7 +664,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019n';
+const BUILD='1019p';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -1486,31 +1498,44 @@ function renderData(){
   const gc=el('<div class="card"><h2>'+T('guilds')+'（'+allyG.length+'）</h2></div>');
   gc.appendChild(el('<div class="muted small" style="margin-bottom:6px">'+(ALLY?T('allyNote'):T('allyNotLoaded'))+'</div>'));
   const gw=el('<div></div>');
-  allyG.forEach(g=>{
-    const row=el('<div class="row" style="margin-bottom:4px;align-items:center"></div>');
-    const p=el('<span class="pill"><i style="background:'+g.c+'"></i>'+g.n+'<button>✕</button></span>');
+  // 管轄（取りまとめ）ごとにまとめて並べ、ギルド1つ＝色つきの1ブロックにする（スマホでも1ギルドが行をまたがない）
+  const coordIdx=n=>{ const i=(S.coords||[]).findIndex(c=>c.g===n); return i<0?999:i; };
+  const sortedAlly=allyG.slice().sort((a,b)=>coordIdx(a.coord)-coordIdx(b.coord) || a.n.localeCompare(b.n));
+  let lastKey=null;
+  sortedAlly.forEach(g=>{
+    const ck=coordIdx(g.coord)<999?g.coord:'';
+    const [bg,bd]=coordColor(ck);
+    if(ck!==lastKey){
+      lastKey=ck;
+      const cnt=sortedAlly.filter(x=>(coordIdx(x.coord)<999?x.coord:'')===ck).length;
+      gw.appendChild(el('<div class="small" style="margin:10px 0 4px;font-weight:700;display:flex;align-items:center;gap:6px"><i style="width:12px;height:12px;border-radius:4px;background:'+bd+';display:inline-block"></i>'+(ck?ck:T('coordNone'))+'（'+cnt+'）</div>'));
+    }
+    const blk=el('<div style="background:'+bg+';border:1px solid '+bd+';border-left:6px solid '+bd+';border-radius:12px;padding:8px 10px;margin-bottom:8px"></div>');
+    const head=el('<div style="margin-bottom:6px"></div>');
+    const p=el('<span class="pill" style="margin:0"><i style="background:'+g.c+'"></i>'+g.n+'<button>✕</button></span>');
     p.querySelector('i').onclick=()=>{const c=prompt(T('color'),g.c);if(c){g.c=c;save();render();}};
     p.querySelector('button').onclick=()=>{if(confirm(g.n+'\n'+T('confirmDel'))){
       S.guilds=S.guilds.filter(x=>x!==g);save();render();}};
-    row.appendChild(p);
+    head.appendChild(p); blk.appendChild(head);
+    const row=el('<div style="display:flex;gap:8px"></div>');
     // 拠点州：2位以下のおすすめ配分（近くの州にいるギルドを優先）で使う。過去の城戦で良い場所の城を取ると自動で引っ越す
-    const ps=document.createElement('select');
+    const f1=el('<div style="flex:1;min-width:0"><div class="muted small" style="margin-bottom:2px">'+T('guildProv')+(g.pauto?' <span style="color:#5B8FD9">'+T('provAuto')+'</span>':'')+'</div></div>');
+    const ps=document.createElement('select'); ps.style.cssText='width:100%;min-width:0;box-sizing:border-box';
     ps.appendChild(new Option(T('provNone'),''));
     SEED.provs.forEach((pv,i)=>ps.appendChild(new Option(pname(i),i)));
     ps.value=(g.prov===undefined||g.prov===null)?'':g.prov;
     ps.onchange=()=>{g.prov=ps.value===''?undefined:Number(ps.value);g.pu=Date.now();g.pauto=0;save();render();};
-    row.appendChild(el('<span class="muted small">'+T('guildProv')+'</span>'));
-    row.appendChild(ps);
-    if(g.pauto) row.appendChild(el('<span class="small" style="color:#5B8FD9">'+T('provAuto')+'</span>'));
+    f1.appendChild(ps); row.appendChild(f1);
     // 取りまとめ（管轄）
-    const cs=document.createElement('select');
+    const f2=el('<div style="flex:1;min-width:0"><div class="muted small" style="margin-bottom:2px">'+T('coordLabel')+'</div></div>');
+    const cs=document.createElement('select'); cs.style.cssText='width:100%;min-width:0;box-sizing:border-box';
     cs.appendChild(new Option(T('coordNone'),''));
     (S.coords||[]).forEach(c=>cs.appendChild(new Option(c.g,c.g)));
     cs.value=g.coord||'';
     cs.onchange=()=>{ g.coord=cs.value; g.cauto=0; g.cu=Date.now(); save(); render(); };
-    row.appendChild(el('<span class="muted small">'+T('coordLabel')+'</span>'));
-    row.appendChild(cs);
-    gw.appendChild(row);
+    f2.appendChild(cs); row.appendChild(f2);
+    blk.appendChild(row);
+    gw.appendChild(blk);
   });
   if(otherG.length){
     const ow=el('<div style="margin-top:10px"><div class="muted small" style="margin-bottom:4px">'+T('otherGuilds')+'（'+otherG.length+'）</div></div>');
@@ -2221,7 +2246,11 @@ function drawEntryCanvas(battles,cv){
     box(C[1],y,CW[1],RH,'#fff');
     F(24,'bold');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
     x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RH/2,CW[1]-10);
-    box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',23,'bold');
+    // 再解放の城で城主が変わらない（＝誰も取らない）日は、占拠ギルドの欄をグレーにして名前は出さない
+    const Bd={date:date};
+    const heldGray = castleStatus(r.c,date)==='reopen' && !chgMode(Bd,r) && (!r.occ || r.occ===incumbentOf(Bd,r));
+    if(heldGray){ box(C[2],y,CW[2],RH,'#DCD8D0'); ctr('城主変更なし',C[2],y,CW[2],RH,'#A39B8E',15,'bold'); }
+    else { box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',23,'bold'); }
     // 列数はLv4〜Lv1の4列で必ず固定（登録数が少ない城でも幅がズレないように）
     const all4=slots4(r.c), cw=CW[3]/4;
     all4.forEach((s,k)=>{
