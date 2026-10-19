@@ -5,6 +5,11 @@
 // 【データが消えないための見張り】
 // 送られてきた内容で、今サーバーにある城戦・城が「削除の印（del）」なしで消えている場合は、保存を断る（409）。
 // 古い画面や、何も入れていない画面から送られた内容で、入力済みのデータが上書きで消されるのを防ぐため。
+//
+// 【古い版に戻さないための見張り】
+// 城ごとに「いつ送ったか（v）」が付いている。送られてきた内容で、ある城の中身が今より古いv（またはvなし）の
+// 中身に戻っている場合も、保存を断る（409）。開きっぱなしの古い画面が、あとから入れた内容を巻き戻すのを防ぐため。
+// 断られた画面は、最新を受け取り直してから送り直す（新しい版の画面は自動でやり直す）。
 const H = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 
 export async function onRequestGet({ env }) {
@@ -20,6 +25,13 @@ export async function onRequestGet({ env }) {
   }
 }
 
+function rowBody(r) {
+  if (!r) return '';
+  const o = JSON.parse(JSON.stringify(r));
+  ['synced', 'v', 'bv', 'shot'].forEach(k => delete o[k]);
+  return JSON.stringify(o);
+}
+
 function missingItems(cur, next) {
   const del = (next && next.del) || {};
   const nb = new Map(((next && next.battles) || []).map(b => [b.id, b]));
@@ -28,8 +40,14 @@ function missingItems(cur, next) {
     if (!b || del[b.id]) return;
     const n = nb.get(b.id);
     if (!n) { miss.push(b.date || b.id); return; }
-    const ids = new Set((n.rows || []).map(r => r.id));
-    (b.rows || []).forEach(r => { if (r && !del[r.id] && !ids.has(r.id)) miss.push((b.date || '') + ' ' + (r.c || r.id)); });
+    const nr = new Map((n.rows || []).map(r => [r.id, r]));
+    (b.rows || []).forEach(r => {
+      if (!r || del[r.id]) return;
+      const x = nr.get(r.id);
+      if (!x) { miss.push((b.date || '') + ' ' + (r.c || r.id)); return; }
+      // 中身が違うのに、送られてきた方が古い版（v が小さい・ない）なら、巻き戻しとみなす
+      if ((r.v || 0) > (x.v || 0) && rowBody(r) !== rowBody(x)) miss.push((b.date || '') + ' ' + (r.c || r.id) + '（古い版）');
+    });
   });
   return miss;
 }
