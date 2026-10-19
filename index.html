@@ -74,6 +74,7 @@ th{color:var(--sub);font-weight:600;font-size:11px}
       <button data-l="zh">繁</button><button data-l="ja">日</button><button data-l="ko">한</button>
     </div>
   </div>
+  <div id="unsent" style="display:none"></div>
   <nav id="nav"></nav>
 </header>
 <main>
@@ -422,6 +423,15 @@ function bkRestore(item){
   return n;
 }
 // 未送信の城の数（ヘッダーの表示用）
+function unsentList(){
+  const out=[];
+  (S.battles||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(b=>{
+    const d=(b.date||'').slice(5).replace('-','/')||'--/--';
+    (b.rows||[]).forEach(r=>{ if(r.synced===false) out.push(d+' '+cname(r.c)); });
+    if(b.synced===false && !(b.rows||[]).length) out.push(d+' ('+(S.lang==='zh'?'尚無城':S.lang==='ko'?'성 없음':'城なし')+')');
+  });
+  return out;
+}
 function unsentCount(){ let n=0; (S.battles||[]).forEach(b=>{ (b.rows||[]).forEach(r=>{ if(r.synced===false) n++; }); if(b.synced===false && !(b.rows||[]).length) n++; }); return n; }
 // 入力欄・選択欄を触っている最中か（その間は自動受信で画面を作り直さない）
 function editingNow(){ const a=document.activeElement; return !!(a && a.closest && a.closest('main') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
@@ -704,7 +714,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019r';
+const BUILD='1019s';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -731,6 +741,11 @@ function render(){
     chip.style.cssText='font-size:11px;font-weight:700;margin-left:6px;padding:2px 8px;border-radius:999px;vertical-align:middle;cursor:pointer;'+(un?'background:#FDE6D3;color:#B5651D;border:1px solid #EBA977':'background:#E1F2E5;color:#3E7D52;border:1px solid #8CCB9D');
     chip.textContent=lab; chip.onclick=()=>{ tab='data'; render(); window.scrollTo(0,0); };
     document.getElementById('ttl').appendChild(chip);
+    const ub=document.getElementById('unsent'), ul=unsentList();
+    if(ul.length){
+      ub.style.cssText='display:block;padding:0 0 8px;font-size:12px;line-height:1.7;color:#B5651D;cursor:pointer';
+      ub.textContent=ul.join(' ・ '); ub.onclick=()=>{ tab='data'; render(); window.scrollTo(0,0); };
+    } else { ub.style.display='none'; ub.textContent=''; }
   }
   document.documentElement.lang=S.lang==='zh'?'zh-Hant':S.lang==='ko'?'ko':'ja';
   document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.lang));
