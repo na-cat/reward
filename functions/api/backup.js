@@ -1,4 +1,4 @@
-// サーバーのバックアップの一覧と取り出し（読み取りだけ。保存は sync.js が送信のたびに自動でする）。
+// サーバーのバックアップの一覧と取り出し（読み取りだけ。保存は sync.js が送信のたびに自動でする）。　
 //   GET /api/backup          → 一覧 { enabled, items:[{id, kind:'recent'|'daily', t, d}] }
 //   GET /api/backup?id=...   → その時点の中身（台帳のJSON）
 // LEDGER_BACKUP_URL が未設定の間は { enabled:false } を返す。
