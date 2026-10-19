@@ -10,6 +10,12 @@
 // 城ごとに「いつ送ったか（v）」が付いている。送られてきた内容で、ある城の中身が今より古いv（またはvなし）の
 // 中身に戻っている場合も、保存を断る（409）。開きっぱなしの古い画面が、あとから入れた内容を巻き戻すのを防ぐため。
 // 断られた画面は、最新を受け取り直してから送り直す（新しい版の画面は自動でやり直す）。
+//
+// 【サーバーのバックアップ】
+// LEDGER_BACKUP_URL（控え用の別の保存先）が登録されていれば、保存のたびに「保存する前の中身」を控える。
+//   直近の分：前の控えから30分以上たっていれば1個。最大6個。
+//   日ごとの分：その日（日本時間）にまだ控えがなければ1個（＝その日最初の変更の直前＝前の日の最後の状態）。最大20日分。
+// 結果スクショは外し、圧縮（gzip）して保存する。控えに失敗しても、本体の保存は止めない。
 const H = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 
 export async function onRequestGet({ env }) {
@@ -23,6 +29,35 @@ export async function onRequestGet({ env }) {
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 502, headers: H });
   }
+}
+
+const RECENT_MAX = 6, RECENT_GAP = 30 * 60 * 1000, DAILY_MAX = 20;
+
+async function gz(str) {
+  const cs = new CompressionStream('gzip');
+  const w = cs.writable.getWriter(); w.write(new TextEncoder().encode(str)); w.close();
+  const buf = new Uint8Array(await new Response(cs.readable).arrayBuffer());
+  let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+async function saveBackup(url, cur) {
+  const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  let bk = {};
+  if (r.ok) { try { bk = JSON.parse((await r.text()) || '{}') || {}; } catch (e) { bk = {}; } }
+  const recent = Array.isArray(bk.recent) ? bk.recent : [];
+  const daily = Array.isArray(bk.daily) ? bk.daily : [];
+  const now = Date.now();
+  const day = new Date(now + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const needRecent = !recent.length || now - recent[recent.length - 1].t >= RECENT_GAP;
+  const needDaily = !daily.some(x => x.d === day);
+  if (!needRecent && !needDaily) return;
+  const copy = JSON.parse(JSON.stringify(cur));
+  (copy.battles || []).forEach(b => (b.rows || []).forEach(x => { if (x) delete x.shot; }));
+  const z = await gz(JSON.stringify(copy));
+  if (needRecent) { recent.push({ t: now, z }); while (recent.length > RECENT_MAX) recent.shift(); }
+  if (needDaily) { daily.push({ d: day, t: now, z }); daily.sort((a, b) => a.d.localeCompare(b.d)); while (daily.length > DAILY_MAX) daily.shift(); }
+  await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ v: 1, recent, daily }) });
 }
 
 function rowBody(r) {
@@ -67,6 +102,10 @@ export async function onRequestPost({ request, env }) {
     try { cur = JSON.parse((await cr.text()) || '{}'); } catch (e) { return new Response(JSON.stringify({ ok: false, reason: 'upstream bad json' }), { status: 502, headers: H }); }
     const miss = missingItems(cur, next);
     if (miss.length) return new Response(JSON.stringify({ ok: false, reason: 'missing', missing: miss.slice(0, 20) }), { status: 409, headers: H });
+    // 保存する前の中身を控える（控え用の保存先が登録されている時だけ。失敗しても本体の保存は続ける）
+    if (env.LEDGER_BACKUP_URL && Array.isArray(cur.battles) && cur.battles.length) {
+      try { await saveBackup(env.LEDGER_BACKUP_URL, cur); } catch (e) {}
+    }
     const r = await fetch(target, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     const t = await r.text();
     return new Response(t || '{}', { status: r.ok ? 200 : 502, headers: H });
