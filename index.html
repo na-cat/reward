@@ -732,7 +732,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019v';
+const BUILD='1019w';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -2266,14 +2266,18 @@ function recognizeEntry(img,fileName){
     const pat=j=>slots4(j).map(sl=>sl?(sl.g?String(sl.g):'—'):'未登録');
     const hits=j=>{const q=pat(j);let n=0;for(let k=0;k<4;k++) if(q[k]===nums[k]) n++;return n;};
     // 城名は文字の形で比べ、門番号の並びが合わない城には少しだけ減点する（数字はフォントの違いで読み違えやすいので、決め手にはしない）
-    const ls=cellSig(ENT.C[0],Y,ENT.CW[0],ENT.RH,true);
+    // 結合セルか（帝翼：Lv・城名・占拠のセルが2段ぶん。1段目の下に横線がなければ結合）
+    const bx=(ENT.C[1]+10)*s; let merged=true;
+    for(let dy=-1;dy<=1;dy++){ if(!near(px(bx,y+ENT.RH*s+dy),[255,255,255],60)) merged=false; }
+    const hh=merged?ENT.RH*2:ENT.RH;
+    const ls=cellSig(ENT.C[0],Y,ENT.CW[0],hh,true);
     const lvRead=ls.sig?bestMatch(ls.sig,['1','2','3','4','5','6','7','8','9','10'],t=>candSig(t,ls.w,ls.h,27*s,'bold',(ENT.CW[0]-8)*s,undefined,true)).t:'';
-    const cs=cellSig(ENT.C[1],Y,ENT.CW[1],ENT.RH,false,240);
+    const cs=cellSig(ENT.C[1],Y,ENT.CW[1],hh,false,240);
     let castle='', bd=1e9;
     if(cs.sig) castles.forEach(j=>{ const ci=CITY[j]; const cg=candSig('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',cs.w,cs.h,24*s,'bold',(ENT.CW[1]-10)*s,undefined,false,240); if(!cg) return;
       const d=sigDist(cs.sig,cg)+NUMW*(4-hits(j))+(String(ci.lv)===lvRead?0:LVW); if(d<bd){bd=d;castle=j;} });
     const row={c:castle,occ:'',a:{},noCalc:{}};
-    const os=cellSig(ENT.C[2],Y,ENT.CW[2],ENT.RH);
+    const os=cellSig(ENT.C[2],Y,ENT.CW[2],hh);
     if(os.sig) row.occ=bestMatch(os.sig,guildNames,g=>candSig(g,os.w,os.h,23*s,'bold',(ENT.CW[2]-8)*s)).t||'';
     const cw=ENT.CW[3]/4;
     for(let k=0;k<4;k++){
@@ -2414,15 +2418,16 @@ function drawEntryCanvas(battles,cv){
       y+=GH; lastDate=date;
     }
     const ci=CITY[r.c]||{lv:1,j:r.c,t:r.c,k:r.c};
-    box(C[0],y,CW[0],RH,'#fff'); ctr(String(ci.lv),C[0],y,CW[0],RH,'#222',27,'bold');
-    box(C[1],y,CW[1],RH,'#fff');
+    const pgs=plainGuilds(r), RHm=pgs.length?RH*2:RH; // 帝翼：英霊のいない門の段を足すので、Lv・城名・占拠のセルは2段ぶんを結合する
+    box(C[0],y,CW[0],RHm,'#fff'); ctr(String(ci.lv),C[0],y,CW[0],RHm,'#222',27,'bold');
+    box(C[1],y,CW[1],RHm,'#fff');
     F(24,'bold');x.fillStyle='#222';x.textAlign='center';x.textBaseline='middle';
-    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RH/2,CW[1]-10);
+    x.fillText('《'+ci.t+'｜'+ci.j+'｜'+ci.k+'》',C[1]+CW[1]/2,y+RHm/2,CW[1]-10);
     // 再解放の城で城主が変わらない（＝誰も取らない）日は、占拠ギルドの欄をグレー地＋薄い文字にする（名前は残すので画像からの復旧でも読める）
     const Bd={date:date};
     const heldGray = castleStatus(r.c,date)==='reopen' && !chgMode(Bd,r) && (!r.occ || r.occ===incumbentOf(Bd,r));
-    if(heldGray){ box(C[2],y,CW[2],RH,'#E4E1DB'); ctr(r.occ||incumbentOf(Bd,r)||'',C[2],y,CW[2],RH,'#9A9184',23,'bold'); }
-    else { box(C[2],y,CW[2],RH,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RH,'#222',23,'bold'); }
+    if(heldGray){ box(C[2],y,CW[2],RHm,'#E4E1DB'); ctr(r.occ||incumbentOf(Bd,r)||'',C[2],y,CW[2],RHm,'#9A9184',23,'bold'); }
+    else { box(C[2],y,CW[2],RHm,'#fff'); ctr(r.occ||'',C[2],y,CW[2],RHm,'#222',23,'bold'); }
     // 列数はLv4〜Lv1の4列で必ず固定（登録数が少ない城でも幅がズレないように）
     const all4=slots4(r.c), cw=CW[3]/4;
     all4.forEach((s,k)=>{
@@ -2434,18 +2439,16 @@ function drawEntryCanvas(battles,cv){
       box(a+cw*0.3,y,cw*0.7,RH,isDecoy?'#F5F1EA':'#fff'); ctr(isDecoy?('※'+g):g,a+cw*0.3,y,cw*0.7,RH,isDecoy?'#8A7D6E':'#222',23,'bold');
     });
     y+=RH;
-    const pgs=plainGuilds(r);
     if(pgs.length){
-      // 帝翼：英霊のいない門の段（Lv・城名・占拠の欄は上の段とひと続き。門番号と入るギルドだけ書く）
-      box(C[0],y,CW[0],RH,'#fff'); box(C[2],y,CW[2],RH,'#fff');
-      box(C[1],y,CW[1],RH,'#fff'); ctr('無英靈的門｜英霊のいない門｜영령 없는 문',C[1],y,CW[1],RH,'#B0A695',16,'bold');
-      for(let k=0;k<4;k++){
+      // 帝翼：英霊のいない門の段（左の3つのセルは上の段と結合済み。門番号と入るギルドだけ書く）
+      for(let k=0;k<pgs.length;k++){
         const a=C[3]+cw*k;
-        if(k<pgs.length){
-          box(a,y,cw*0.3,RH,'#F3EDE4'); ctr(String(pgs[k].n),a,y,cw*0.3,RH,'#222',22,'bold');
-          box(a+cw*0.3,y,cw*0.7,RH,'#fff'); ctr(pgs[k].g,a+cw*0.3,y,cw*0.7,RH,'#222',23,'bold');
-        } else box(a,y,cw,RH,'#F7F4EF');
+        box(a,y,cw*0.3,RH,'#F3EDE4'); ctr(String(pgs[k].n),a,y,cw*0.3,RH,'#222',22,'bold');
+        box(a+cw*0.3,y,cw*0.7,RH,'#fff'); ctr(pgs[k].g,a+cw*0.3,y,cw*0.7,RH,'#222',23,'bold');
       }
+      // 残りの余白は1つのグレーのセルにして、英霊のいない門であることを薄く書く
+      const ra=C[3]+cw*pgs.length, rw=CW[3]-cw*pgs.length;
+      box(ra,y,rw,RH,'#F7F4EF'); ctr('← 英霊のいない門（無英靈的門｜영령 없는 문）',ra,y,rw,RH,'#B0A695',15,'bold');
       y+=RH;
     }
   });
