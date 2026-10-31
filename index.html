@@ -732,7 +732,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019x';
+const BUILD='1019y';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -1730,6 +1730,17 @@ function renderData(){
     const add=el('<button class="b">＋ '+T('coordAdd')+'</button>');
     add.onclick=()=>{ const n=prompt(T('guildName')); if(n&&n.trim()){ addGuild(n.trim()); S.coords=S.coords||[]; S.coords.push({g:n.trim(),provs:[]}); S.coU=Date.now(); save(); render(); } };
     cc.appendChild(add);
+    // 取りまとめを全部まっさらにする（新シーズンで担当が変わる時用）
+    const zh=S.lang==='zh', ko=S.lang==='ko';
+    const rs=el('<button class="b d" style="margin-left:6px">'+(zh?'重設全部統籌':ko?'취합 전체 초기화':'取りまとめを全部リセット')+'</button>');
+    rs.onclick=()=>{
+      if(!confirm(zh?'清除所有統籌公會、負責的州，以及各公會的統籌設定（所有人的畫面都會清空）。公會名冊本身不會刪除。確定嗎？':ko?'모든 취합 길드・담당 주・각 길드의 취합 설정을 지웁니다（모든 사람의 화면에서 사라집니다）. 길드 명부 자체는 지워지지 않습니다. 계속할까요？':'取りまとめギルドと担当の州、各ギルドの取りまとめの設定を全部消します（みんなの画面からも消えます）。ギルド名簿そのものは消えません。よろしいですか？')) return;
+      const t=Date.now();
+      S.coords=[]; S.coU=t; S.myCoord='';
+      S.guilds.forEach(g=>{ if(g.coord||g.cauto){ g.coord=''; delete g.cauto; g.cu=t; } });
+      save(); render(); doPush(true);
+    };
+    cc.appendChild(rs);
     P.appendChild(cc);
   }
 
