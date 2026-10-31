@@ -732,7 +732,7 @@ function recommendGates(B,r){
 /* ---------- 不具合の見える化 ---------- */
 // 画面が反応しない時に原因が分かるよう、エラーが起きたら画面の上に赤い帯で表示する（タップで閉じる）。
 // BUILD は、いま開いているのがどの版のファイルか確認するための印（画面上部のタイトルの横に出る）
-const BUILD='1019w';
+const BUILD='1019x';
 function showErr(msg){
   try{
     let b=document.getElementById('errbar');
@@ -1767,11 +1767,65 @@ function renderData(){
     S.rewards[+inp.dataset.lv][+inp.dataset.i][+inp.dataset.k]=+inp.value||0;S.rwU=Date.now();save();});
   P.appendChild(rc);
 
-  // 全消去
+  // 新しいシーズンを始める（保存してから、城戦の記録だけを全員分消す）
+  const zh=S.lang==='zh', ko=S.lang==='ko';
+  const nc=el('<div class="card"><h2>'+(zh?'開始新賽季':ko?'새 시즌 시작':'新しいシーズンを始める')+'</h2></div>');
+  nc.appendChild(el('<div class="small" style="line-height:1.7">'+(zh?
+    '① 先從伺服器取得最新資料，下載整季的JSON存檔<br>② 確認存檔後，刪除所有城戰紀錄（所有人的畫面都會清空）<br>保留：公會名冊・管轄・獎勵表・門與英靈資料・預設組合<br>清除：城戰紀錄・賽季首次城戰日期・攻城計畫的城主分配':ko?
+    '① 서버에서 최신 데이터를 받아 시즌 전체 JSON을 저장합니다<br>② 저장을 확인한 후 모든 성전 기록을 삭제합니다（모든 사람의 화면에서 사라집니다）<br>유지：길드 명부・관할・보상표・문과 영령 데이터・프리셋<br>삭제：성전 기록・시즌 첫 성전 날짜・성 공략 계획의 성주 배정':
+    '① サーバーの最新データを取ってきて、シーズン全体のJSONを保存します<br>② 保存できたのを確認してから、城戦の記録を全部消します（みんなの画面からも消えます）<br>残すもの：ギルド名簿・管轄・報酬表・門と英霊のデータ・参加予定のプリセット<br>消すもの：城戦の記録・シーズン最初の城戦の日・城取り計画の城主の割当')+'</div>'));
+  const nb=el('<button class="b d" style="margin-top:8px">'+(zh?'保存並開始新賽季':ko?'저장하고 새 시즌 시작':'保存して新しいシーズンを始める')+'</button>');
+  nb.onclick=()=>seasonReset();
+  nc.appendChild(nb); P.appendChild(nc);
+
+  // この端末だけリセット（サーバーの内容は消えない。次に開いた時にサーバーから読み直す）
   const dc=el('<div class="card"></div>');
-  const db=el('<button class="b d">'+T('resetAll')+'</button>');
-  db.onclick=()=>{if(confirm(T('resetAll')+'?')){localStorage.removeItem(KEY);location.reload();}};
-  dc.appendChild(db); P.appendChild(dc);
+  const db=el('<button class="b">'+(zh?'只重設這台裝置':ko?'이 기기만 초기화':'この端末だけリセット')+'</button>');
+  db.onclick=()=>{
+    const u=unsentCount();
+    const m=(zh?'只清除這台裝置裡的資料，再從伺服器重新讀取。伺服器上的資料不會消失。':ko?'이 기기의 데이터만 지우고 서버에서 다시 읽어옵니다. 서버의 데이터는 지워지지 않습니다.':'この端末の中のデータだけを消して、サーバーから読み直します。サーバーのデータは消えません。')
+      +(u?'\n\n⚠ '+(zh?'未傳送的 ':ko?'미전송 ':'未送信の城 ')+u+(zh?' 筆會消失。':ko?'건이 사라집니다.':'件は消えます。'):'');
+    if(confirm(m)){localStorage.removeItem(KEY);location.reload();}};
+  dc.appendChild(db);
+  dc.appendChild(el('<div class="muted small" style="margin-top:6px">'+(zh?'畫面怪怪的時候用。新賽季請用上面的按鈕。':ko?'화면이 이상할 때 사용합니다. 새 시즌은 위의 버튼을 사용하세요.':'画面の様子がおかしい時用です。新シーズンの切り替えには上のボタンを使ってください。')+'</div>'));
+  P.appendChild(dc);
+}
+async function seasonReset(){
+  const zh=S.lang==='zh', ko=S.lang==='ko';
+  if(!confirm(zh?'先從伺服器取得最新資料並下載存檔。繼續嗎？':ko?'먼저 서버에서 최신 데이터를 받아 저장 파일을 내려받습니다. 계속할까요？':'まずサーバーの最新データを取ってきて、保存ファイルをダウンロードします。続けますか？')) return;
+  let remote;
+  try{ remote=await fetchRemote(); }catch(e){ alert((zh?'無法連線到伺服器，已中止：':ko?'서버에 연결할 수 없어 중단했습니다：':'サーバーにつながらないので中止しました：')+e.message); return; }
+  adopt(mergeRemote(remote)); render();
+  // ① シーズン全体を保存（未送信の城や、この端末のスクショも含めた丸ごと）
+  const nm='reward-ledger-season-end-'+ymdLocal()+'-'+hhmm()+'.json';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'})); a.download=nm; a.click();
+  const nB=(S.battles||[]).length, nR=(S.battles||[]).reduce((t,b)=>t+(b.rows||[]).length,0);
+  await new Promise(z=>setTimeout(z,800));
+  if(!confirm((zh?'已下載「':ko?'「':'「')+nm+(zh?'」。\n請確認檔案已存好。\n\n確定要刪除全部 ':ko?'」을 내려받았습니다.\n파일이 저장됐는지 확인해 주세요.\n\n전체 ':'」をダウンロードしました。\nファイルが保存できているか確認してください。\n\n全部で ')
+    +nB+(zh?' 場城戰・':ko?'개 성전・':' 回の城戦・')+nR+(zh?' 座城的紀錄嗎？（所有人的畫面都會清空）':ko?'개 성의 기록을 삭제할까요？（모든 사람의 화면에서 사라집니다）':' 城ぶんの記録を消しますか？（みんなの画面からも消えます）'))) return;
+  // ② 消す（削除の印を付けて送る。印があるので、他の人の端末の古いデータで復活しない）
+  const t=Date.now(); S.del=S.del||{};
+  (S.battles||[]).forEach(b=>{ S.del[b.id]=t; (b.rows||[]).forEach(r=>S.del[r.id]=t); });
+  S.battles=[]; S.seasonStart=''; S.cpAssign={}; S.cpU=t; S.cur=null;
+  save(); render();
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const rm=await fetchRemote();
+      const base=cloneJ(rm);
+      base.del=Object.assign({},base.del||{},S.del);
+      // 消している間に誰かが新しく足した城戦があれば、それも消す（新シーズン開始の合図なので全部）
+      (base.battles||[]).forEach(b=>{ base.del[b.id]=base.del[b.id]||t; (b.rows||[]).forEach(r=>base.del[r.id]=base.del[r.id]||t); });
+      base.battles=[]; base.seasonStart=''; base.cpAssign={}; base.cpU=t; base.u=Date.now();
+      await postRemote(base);
+      adopt(mergeRemote(base)); st('⬆ '+new Date().toLocaleTimeString()); render();
+      alert(zh?'完成！新賽季開始了。\n接下來請讀取新賽季的攻城計畫JSON（或在上面輸入賽季首次城戰日期）。':ko?'완료！새 시즌이 시작되었습니다.\n다음으로 새 시즌의 성 공략 계획 JSON을 읽어오세요（또는 위에서 시즌 첫 성전 날짜를 입력）.':'完了！新しいシーズンになりました。\n次に、新シーズンの城取り計画のJSONを読み込んでください（または上の「シーズン最初の城戦の日」を入力）。');
+      return;
+    }catch(e){
+      if(e.conflict && attempt<2) continue;
+      alert((zh?'傳送失敗：':ko?'전송 실패：':'送信に失敗しました：')+e.message+'\n'+(zh?'這台裝置已清空，但伺服器還沒有。請稍後再按一次按鈕。':ko?'이 기기는 비웠지만 서버는 아직입니다. 잠시 후 버튼을 다시 눌러 주세요.':'この端末は消えましたが、サーバーはまだです。少し待ってからもう一度ボタンを押してください。'));
+      return;
+    }
+  }
 }
 
 /* ---------- 取り込み ---------- */
